@@ -5,7 +5,7 @@
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import { Card, CardContent } from '$lib/components/ui/card';
 
-	let { mode = 'sequential' }: { mode?: StudyMode } = $props();
+	let { mode = 'sequential', setId }: { mode?: StudyMode; setId: string } = $props();
 
 	let currentIndex = $state(0);
 	let showPinyin = $state(false);
@@ -14,9 +14,9 @@
 
 	$effect(() => {
 		if (mode === 'random') {
-			studyCards = cardStore.getRandomOrder();
+			studyCards = cardStore.getRandomOrder(setId);
 		} else {
-			studyCards = [...cardStore.cards];
+			studyCards = cardStore.getCardsBySet(setId);
 		}
 		currentIndex = 0;
 		showPinyin = false;

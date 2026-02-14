@@ -14,7 +14,7 @@
 	} from '$lib/components/ui/dialog';
 	import pinyin from 'pinyin';
 
-	let { open = $bindable(false) }: { open: boolean } = $props();
+	let { open = $bindable(false), setId }: { open: boolean; setId: string } = $props();
 
 	let chinese = $state('');
 	let pinyinText = $state('');
@@ -35,6 +35,7 @@
 	function handleSubmit() {
 		if (chinese.trim()) {
 			cardStore.addCard({
+				setId,
 				chinese: chinese.trim(),
 				pinyin: pinyinText.trim(),
 				english: english.trim()
