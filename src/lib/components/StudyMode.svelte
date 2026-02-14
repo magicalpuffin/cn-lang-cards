@@ -5,10 +5,16 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import { Card, CardContent } from '$lib/components/ui/card';
+	import { Dialog, DialogContent, DialogHeader, DialogTitle } from '$lib/components/ui/dialog';
 	import * as Carousel from '$lib/components/ui/carousel/index.js';
 	import StudyCard from './StudyCard.svelte';
+	import CreateCardDialog from './CreateCardDialog.svelte';
+	import CardManager from './CardManager.svelte';
 
 	let { mode = 'sequential', setId }: { mode?: StudyMode; setId: string } = $props();
+
+	let createCardOpen = $state(false);
+	let manageCardsOpen = $state(false);
 
 	let api = $state<CarouselAPI>();
 	let currentIndex = $state(0);
@@ -78,21 +84,22 @@
 	</Card>
 {:else}
 	<div class="space-y-4">
-		<div class="flex justify-between items-center text-sm text-muted-foreground">
-			<span>Card {currentIndex + 1} of {studyCards.length}</span>
-			<span class="capitalize">{mode} mode</span>
+		<div class="flex justify-between items-center">
+			<span class="text-sm text-muted-foreground"
+				>Card {currentIndex + 1} of {studyCards.length}</span
+			>
+			<ButtonGroup>
+				<Button variant="outline" onclick={() => (createCardOpen = true)}>Add Card</Button>
+				<Button variant="outline" onclick={() => (manageCardsOpen = true)}>Manage Cards</Button>
+			</ButtonGroup>
+			<!-- <span class="capitalize">{mode} mode</span> -->
 		</div>
 
 		<Carousel.Root setApi={(emblaApi) => (api = emblaApi)}>
 			<Carousel.Content>
 				{#each studyCards as card (card.id)}
 					<Carousel.Item>
-						<StudyCard
-							{card}
-							isActive={card.id === currentCard?.id}
-							{showPinyin}
-							{showEnglish}
-						/>
+						<StudyCard {card} isActive={card.id === currentCard?.id} {showPinyin} {showEnglish} />
 					</Carousel.Item>
 				{/each}
 			</Carousel.Content>
@@ -143,3 +150,14 @@
 		</div>
 	</div>
 {/if}
+
+<CreateCardDialog bind:open={createCardOpen} {setId} />
+
+<Dialog bind:open={manageCardsOpen}>
+	<DialogContent class="overflow-y-auto sm:max-w-lg max-h-[80vh]">
+		<DialogHeader>
+			<DialogTitle>Manage Cards</DialogTitle>
+		</DialogHeader>
+		<CardManager {setId} />
+	</DialogContent>
+</Dialog>

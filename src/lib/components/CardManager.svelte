@@ -22,7 +22,10 @@
 	import SetManager from './SetManager.svelte';
 	import { EllipsisVerticalIcon, PlusIcon, ArrowLeftIcon } from '@lucide/svelte';
 
-	let activeSetId = $state<string | null>(null);
+	let { setId }: { setId?: string } = $props();
+
+	let internalSetId = $state<string | null>(null);
+	const activeSetId = $derived(setId ?? internalSetId);
 
 	let quickAddOpen = $state(false);
 	let createDialogOpen = $state(false);
@@ -53,14 +56,16 @@
 			Quick Add
 		</Button>
 	</div>
-	<SetManager onselect={(setId) => (activeSetId = setId)} />
+	<SetManager onselect={(id) => (internalSetId = id)} />
 {:else}
 	<Card>
 		<CardHeader>
 			<CardTitle>
-				<Button variant="ghost" size="icon" onclick={() => (activeSetId = null)}>
-					<ArrowLeftIcon />
-				</Button>
+				{#if !setId}
+					<Button variant="ghost" size="icon" onclick={() => (internalSetId = null)}>
+						<ArrowLeftIcon />
+					</Button>
+				{/if}
 				{activeSetName} ({setCards.length})
 			</CardTitle>
 			<CardDescription>Manage cards in this set</CardDescription>

@@ -1,21 +1,35 @@
 <script lang="ts">
-	import { DEFAULT_SET_ID } from '$lib/stores/cards.svelte';
+	import { cardStore, DEFAULT_SET_ID } from '$lib/stores/cards.svelte';
 	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import CardManager from '$lib/components/CardManager.svelte';
 	import StudyMode from '$lib/components/StudyMode.svelte';
 	import SetSelectorCombobox from '$lib/components/SetSelectorCombobox.svelte';
+	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
+	import EditSetDialog from '$lib/components/EditSetDialog.svelte';
 	import type { StudyMode as StudyModeType } from '$lib/types';
+	import { PlusIcon, SquarePenIcon } from '@lucide/svelte';
 
 	let studyMode = $state<StudyModeType>('sequential');
-	let studySetId = $state<string | null>(DEFAULT_SET_ID);
+	let studySetId = $state<string | null>(cardStore.selectedSetId);
+
+	let createSetOpen = $state(false);
+	let editSetOpen = $state(false);
+
+	const selectedSet = $derived(cardStore.cardSets.find((s) => s.id === studySetId) ?? null);
+
+	$effect(() => {
+		if (studySetId) {
+			cardStore.setSelectedSetId(studySetId);
+		}
+	});
 </script>
 
 <div class="container p-4 mx-auto max-w-4xl">
 	<h1 class="mb-8 text-4xl font-bold text-center">Chinese Flashcards</h1>
 
-	<Tabs value="manage" class="w-full">
+	<Tabs value="study" class="w-full">
 		<TabsList class="grid grid-cols-3 w-full">
 			<TabsTrigger value="manage">Manage Cards</TabsTrigger>
 			<TabsTrigger value="study">Study</TabsTrigger>
@@ -28,8 +42,19 @@
 
 		<TabsContent value="study" class="mt-6">
 			<div class="space-y-6">
-				<div class="flex flex-wrap gap-4 justify-between items-center">
-					<SetSelectorCombobox bind:value={studySetId} />
+				<div class="flex flex-wrap justify-between items-center">
+					<div class="flex items-center space-x-4">
+						<span class="text-sm text-muted-foreground">Card Set</span>
+						<ButtonGroup>
+							<SetSelectorCombobox bind:value={studySetId} />
+							<Button variant="outline" onclick={() => (createSetOpen = true)}><PlusIcon /></Button>
+							<Button
+								variant="outline"
+								onclick={() => (editSetOpen = true)}
+								disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
+							>
+						</ButtonGroup>
+					</div>
 
 					<ButtonGroup>
 						<Button
@@ -60,3 +85,6 @@
 		</TabsContent>
 	</Tabs>
 </div>
+
+<CreateSetDialog bind:open={createSetOpen} oncreate={(id) => (studySetId = id)} />
+<EditSetDialog bind:open={editSetOpen} cardSet={selectedSet} />

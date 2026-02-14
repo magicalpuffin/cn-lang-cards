@@ -12,15 +12,19 @@
 		DialogTitle
 	} from '$lib/components/ui/dialog';
 
-	let { open = $bindable(false) }: { open: boolean } = $props();
+	let {
+		open = $bindable(false),
+		oncreate
+	}: { open: boolean; oncreate?: (setId: string) => void } = $props();
 
 	let name = $state('');
 
 	function handleSubmit() {
 		if (name.trim()) {
-			cardStore.addSet(name.trim());
+			const newId = cardStore.addSet(name.trim());
 			name = '';
 			open = false;
+			oncreate?.(newId);
 		}
 	}
 </script>

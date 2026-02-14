@@ -1,13 +1,14 @@
 import { browser } from "$app/environment";
 import type { CardSet, FlashCard } from "$lib/types";
 
-export const DEFAULT_SET_ID = "default";
+export const DEFAULT_SET_ID = "default-set";
 
 const STORAGE_KEY = "cn-lang-cards";
 
 interface StorageData {
 	cards: FlashCard[];
 	sets: CardSet[];
+	selectedSetId?: string;
 }
 
 function loadStorage(): StorageData {
@@ -16,64 +17,60 @@ function loadStorage(): StorageData {
 	if (stored) {
 		return JSON.parse(stored);
 	}
-	// Migrate from old keys if they exist
-	const oldCards = localStorage.getItem("flashcards");
-	const oldSets = localStorage.getItem("flashcard-sets");
-	const data: StorageData = {
-		cards: oldCards ? JSON.parse(oldCards) : [],
-		sets: oldSets ? JSON.parse(oldSets) : [],
-	};
-	if (oldCards || oldSets) {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-		localStorage.removeItem("flashcards");
-		localStorage.removeItem("flashcard-sets");
-	}
-	return data;
+	return { cards: [], sets: [] };
 }
 
 function ensureDefaultSet(sets: CardSet[]): CardSet[] {
 	if (sets.some((s) => s.id === DEFAULT_SET_ID)) return sets;
-	return [{ id: DEFAULT_SET_ID, name: "Default", createdAt: 0 }, ...sets];
+	return [{ id: DEFAULT_SET_ID, name: "Default Set", createdAt: 0 }, ...sets];
 }
 
-function saveStorage(cards: FlashCard[], sets: CardSet[]) {
+function saveStorage(cards: FlashCard[], sets: CardSet[], selectedSetId?: string) {
 	if (!browser) return;
-	localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, sets }));
+	localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, sets, selectedSetId }));
 }
 
 class CardStore {
 	cards: FlashCard[];
 	cardSets: CardSet[];
+	selectedSetId: string;
 
 	constructor() {
 		const data = loadStorage();
 		this.cards = $state(data.cards);
 		this.cardSets = $state(ensureDefaultSet(data.sets));
+		this.selectedSetId = $state(data.selectedSetId ?? DEFAULT_SET_ID);
+	}
+
+	setSelectedSetId(id: string) {
+		this.selectedSetId = id;
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	// Set methods
-	addSet(name: string) {
+	addSet(name: string): string {
 		const newSet: CardSet = {
 			id: crypto.randomUUID(),
 			name,
 			createdAt: Date.now(),
 		};
 		this.cardSets = [...this.cardSets, newSet];
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		return newSet.id;
 	}
 
 	updateSet(id: string, name: string) {
 		this.cardSets = this.cardSets.map((s) =>
 			s.id === id ? { ...s, name } : s,
 		);
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	deleteSet(id: string) {
 		if (id === DEFAULT_SET_ID) return;
 		this.cardSets = this.cardSets.filter((s) => s.id !== id);
 		this.cards = this.cards.filter((c) => c.setId !== id);
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	getCardsBySet(setId: string): FlashCard[] {
@@ -88,12 +85,12 @@ class CardStore {
 			createdAt: Date.now(),
 		};
 		this.cards = [...this.cards, newCard];
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	deleteCard(id: string) {
 		this.cards = this.cards.filter((c) => c.id !== id);
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	updateCard(
@@ -103,7 +100,7 @@ class CardStore {
 		this.cards = this.cards.map((c) =>
 			c.id === id ? { ...c, ...updates } : c,
 		);
-		saveStorage(this.cards, this.cardSets);
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
 	getRandomOrder(setId: string): FlashCard[] {
