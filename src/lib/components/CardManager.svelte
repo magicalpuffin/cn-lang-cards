@@ -50,7 +50,7 @@
 	<div class="mb-4">
 		<Button class="w-full" onclick={() => (quickAddOpen = true)}>
 			<PlusIcon class="mr-2 h-4 w-4" />
-			Quick Add Card
+			Quick Add
 		</Button>
 	</div>
 	<SetManager onselect={(setId) => (activeSetId = setId)} />
