@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { cardStore } from '$lib/stores/cards.svelte';
 	import type { FlashCard, StudyMode } from '$lib/types';
+	import type { CarouselAPI } from '$lib/components/ui/carousel/context';
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import { Card, CardContent } from '$lib/components/ui/card';
+	import * as Carousel from '$lib/components/ui/carousel/index.js';
 
 	let { mode = 'sequential', setId }: { mode?: StudyMode; setId: string } = $props();
 
+	let api = $state<CarouselAPI>();
 	let currentIndex = $state(0);
 	let showPinyin = $state(false);
 	let showEnglish = $state(false);
@@ -21,29 +24,28 @@
 		currentIndex = 0;
 		showPinyin = false;
 		showEnglish = false;
+		// Reset carousel to first slide when mode/set changes
+		if (api) {
+			api.scrollTo(0, true);
+		}
+	});
+
+	$effect(() => {
+		if (api) {
+			api.on('select', () => {
+				currentIndex = api!.selectedScrollSnap();
+				showPinyin = false;
+				showEnglish = false;
+			});
+		}
 	});
 
 	const currentCard = $derived(studyCards[currentIndex]);
 	const hasCards = $derived(studyCards.length > 0);
-	const isFirst = $derived(currentIndex === 0);
-	const isLast = $derived(currentIndex === studyCards.length - 1);
 	const hasEnglish = $derived(currentCard?.english?.trim().length > 0);
-
-	function next() {
-		if (!isLast) {
-			currentIndex++;
-			showPinyin = false;
-			showEnglish = false;
-		}
-	}
-
-	function prev() {
-		if (!isFirst) {
-			currentIndex--;
-			showPinyin = false;
-			showEnglish = false;
-		}
-	}
+	// Reference currentIndex so these re-derive on slide change
+	const canScrollPrev = $derived(currentIndex >= 0 && (api?.canScrollPrev() ?? false));
+	const canScrollNext = $derived(currentIndex >= 0 && (api?.canScrollNext() ?? false));
 
 	function togglePinyin() {
 		showPinyin = !showPinyin;
@@ -75,33 +77,41 @@
 	</Card>
 {:else}
 	<div class="space-y-4">
-		<div class="flex items-center justify-between text-sm text-muted-foreground">
+		<div class="flex justify-between items-center text-sm text-muted-foreground">
 			<span>Card {currentIndex + 1} of {studyCards.length}</span>
 			<span class="capitalize">{mode} mode</span>
 		</div>
 
-		<Card class="min-h-[300px]">
-			<CardContent class="flex min-h-[300px] items-center justify-center p-8">
-				<div class="space-y-4 text-center">
-					<!-- Always show Chinese -->
-					<div class="text-6xl font-medium">{currentCard.chinese}</div>
+		<Carousel.Root setApi={(emblaApi) => (api = emblaApi)}>
+			<Carousel.Content>
+				{#each studyCards as card (card.id)}
+					<Carousel.Item>
+						<Card class="min-h-[300px]">
+							<CardContent class="flex justify-center items-center p-8 min-h-[300px]">
+								<div class="space-y-4 text-center">
+									<!-- Always show Chinese -->
+									<div class="text-6xl font-medium">{card.chinese}</div>
 
-					<!-- Show pinyin if toggled -->
-					{#if showPinyin}
-						<div class="text-xl text-muted-foreground transition-opacity">
-							{currentCard.pinyin}
-						</div>
-					{/if}
+									<!-- Show pinyin if toggled and this is the current card -->
+									{#if showPinyin && card.id === currentCard?.id}
+										<div class="text-xl transition-opacity text-muted-foreground">
+											{card.pinyin}
+										</div>
+									{/if}
 
-					<!-- Show english if toggled and exists -->
-					{#if showEnglish && hasEnglish}
-						<div class="mt-4 text-2xl transition-opacity">
-							{currentCard.english}
-						</div>
-					{/if}
-				</div>
-			</CardContent>
-		</Card>
+									<!-- Show english if toggled and exists and this is the current card -->
+									{#if showEnglish && card.english?.trim() && card.id === currentCard?.id}
+										<div class="mt-4 text-2xl transition-opacity">
+											{card.english}
+										</div>
+									{/if}
+								</div>
+							</CardContent>
+						</Card>
+					</Carousel.Item>
+				{/each}
+			</Carousel.Content>
+		</Carousel.Root>
 
 		<!-- Reveal controls -->
 		<div class="flex flex-col gap-2 md:grid md:grid-cols-2 md:gap-4">
@@ -132,8 +142,18 @@
 		<!-- Navigation buttons -->
 		<div class="flex justify-center">
 			<ButtonGroup>
-				<Button onclick={prev} disabled={isFirst} variant="outline" class="w-24">Previous</Button>
-				<Button onclick={next} disabled={isLast} variant="outline" class="w-24">Next</Button>
+				<Button
+					onclick={() => api?.scrollPrev()}
+					disabled={!canScrollPrev}
+					variant="outline"
+					class="w-24">Previous</Button
+				>
+				<Button
+					onclick={() => api?.scrollNext()}
+					disabled={!canScrollNext}
+					variant="outline"
+					class="w-24">Next</Button
+				>
 			</ButtonGroup>
 		</div>
 	</div>
