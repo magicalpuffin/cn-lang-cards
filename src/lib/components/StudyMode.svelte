@@ -95,8 +95,10 @@
 					>Card {currentIndex + 1} of {studyCards.length}</span
 				>
 				<ButtonGroup>
-					<Button variant="outline" onclick={() => (createCardOpen = true)}><PlusIcon /></Button>
-					<Button variant="outline" onclick={() => (manageCardsOpen = true)}
+					<Button variant="outline" size="icon" onclick={() => (createCardOpen = true)}
+						><PlusIcon /></Button
+					>
+					<Button variant="outline" size="icon" onclick={() => (manageCardsOpen = true)}
 						><SquarePenIcon /></Button
 					>
 				</ButtonGroup>

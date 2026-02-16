@@ -12,7 +12,11 @@
 		AlertDialogTitle
 	} from '$lib/components/ui/alert-dialog';
 
-	let { open = $bindable(false), cardSet }: { open: boolean; cardSet: CardSet | null } = $props();
+	let {
+		open = $bindable(false),
+		cardSet,
+		ondelete
+	}: { open: boolean; cardSet: CardSet | null; ondelete?: () => void } = $props();
 
 	const cardCount = $derived(cardSet ? cardStore.getCardsBySet(cardSet.id).length : 0);
 
@@ -20,6 +24,7 @@
 		if (cardSet) {
 			cardStore.deleteSet(cardSet.id);
 			open = false;
+			ondelete?.();
 		}
 	}
 </script>

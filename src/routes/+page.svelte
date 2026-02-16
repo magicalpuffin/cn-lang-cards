@@ -9,13 +9,15 @@
 	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
 	import EditSetDialog from '$lib/components/EditSetDialog.svelte';
 	import type { StudyMode as StudyModeType } from '$lib/types';
-	import { PlusIcon, SquarePenIcon } from '@lucide/svelte';
+	import { PlusIcon, SquarePenIcon, Trash2Icon } from '@lucide/svelte';
+	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 
 	let studyMode = $state<StudyModeType>('sequential');
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
 
 	let createSetOpen = $state(false);
 	let editSetOpen = $state(false);
+	let deleteSetOpen = $state(false);
 
 	const selectedSet = $derived(cardStore.cardSets.find((s) => s.id === studySetId) ?? null);
 
@@ -44,13 +46,27 @@
 					<div class="flex items-center space-x-4">
 						<span class="w-20 text-sm text-muted-foreground">Card Set</span>
 						<ButtonGroup>
-							<SetSelectorCombobox bind:value={studySetId} />
-							<Button variant="outline" onclick={() => (createSetOpen = true)}><PlusIcon /></Button>
-							<Button
-								variant="outline"
-								onclick={() => (editSetOpen = true)}
-								disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
-							>
+							<ButtonGroup>
+								<SetSelectorCombobox bind:value={studySetId} />
+								<Button
+									variant="outline"
+									size="icon"
+									onclick={() => (editSetOpen = true)}
+									disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
+								>
+								<Button
+									variant="outline"
+									size="icon"
+									onclick={() => (deleteSetOpen = true)}
+									disabled={!studySetId || studySetId === DEFAULT_SET_ID}
+									><Trash2Icon class="text-destructive" /></Button
+								>
+							</ButtonGroup>
+							<ButtonGroup>
+								<Button variant="outline" size="icon" onclick={() => (createSetOpen = true)}
+									><PlusIcon /></Button
+								>
+							</ButtonGroup>
 						</ButtonGroup>
 					</div>
 
@@ -86,3 +102,4 @@
 
 <CreateSetDialog bind:open={createSetOpen} oncreate={(id) => (studySetId = id)} />
 <EditSetDialog bind:open={editSetOpen} cardSet={selectedSet} />
+<DeleteSetDialog bind:open={deleteSetOpen} cardSet={selectedSet} ondelete={() => (studySetId = DEFAULT_SET_ID)} />
