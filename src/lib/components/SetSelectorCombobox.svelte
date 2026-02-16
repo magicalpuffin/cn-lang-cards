@@ -29,12 +29,12 @@
 			<Button
 				{...props}
 				variant="outline"
-				class="w-[200px] justify-between"
+				class="w-[200px] justify-between overflow-hidden"
 				role="combobox"
 				aria-expanded={open}
 			>
-				{selectedLabel || 'Select a set...'}
-				<ChevronsUpDownIcon class="opacity-50" />
+				<span class="truncate">{selectedLabel || 'Select a set...'}</span>
+				<ChevronsUpDownIcon class="shrink-0 opacity-50" />
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
@@ -52,8 +52,8 @@
 								closeAndFocusTrigger();
 							}}
 						>
-							<CheckIcon class={cn(value !== set.id && 'text-transparent')} />
-							{set.name}
+							<CheckIcon class={cn('shrink-0', value !== set.id && 'text-transparent')} />
+							<span class="truncate">{set.name}</span>
 						</Command.Item>
 					{/each}
 				</Command.Group>

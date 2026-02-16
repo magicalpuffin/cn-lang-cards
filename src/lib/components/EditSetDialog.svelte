@@ -2,36 +2,47 @@
 	import type { CardSet } from '$lib/types';
 	import { cardStore, DEFAULT_SET_ID } from '$lib/stores/cards.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { Label } from '$lib/components/ui/label';
 	import { Input } from '$lib/components/ui/input';
 	import {
 		Dialog,
 		DialogContent,
-		DialogDescription,
-		DialogFooter,
 		DialogHeader,
 		DialogTitle
 	} from '$lib/components/ui/dialog';
+	import CardManager from './CardManager.svelte';
 	import DeleteSetDialog from './DeleteSetDialog.svelte';
+	import { CheckIcon, PencilIcon, Trash2Icon, XIcon } from '@lucide/svelte';
 
 	let { open = $bindable(false), cardSet }: { open: boolean; cardSet: CardSet | null } = $props();
 
+	let editingName = $state(false);
 	let editName = $state('');
 	let deleteDialogOpen = $state(false);
 
 	const isDefaultSet = $derived(cardSet?.id === DEFAULT_SET_ID);
 
 	$effect(() => {
-		if (open && cardSet) {
-			editName = cardSet.name;
+		if (open) {
+			editingName = false;
 		}
 	});
 
-	function handleSave() {
+	function startEditing() {
+		if (cardSet) {
+			editName = cardSet.name;
+			editingName = true;
+		}
+	}
+
+	function saveName() {
 		if (cardSet && editName.trim()) {
 			cardStore.updateSet(cardSet.id, editName.trim());
-			open = false;
+			editingName = false;
 		}
+	}
+
+	function cancelEditing() {
+		editingName = false;
 	}
 
 	function handleDeleteClick() {
@@ -41,34 +52,47 @@
 </script>
 
 <Dialog bind:open>
-	<DialogContent>
+	<DialogContent class="overflow-y-auto sm:max-w-lg max-h-[80vh]">
 		<DialogHeader>
-			<DialogTitle>Edit Set</DialogTitle>
-			<DialogDescription>Rename your card set.</DialogDescription>
+			<DialogTitle>
+				{#if editingName}
+					<form
+						class="flex items-center gap-2"
+						onsubmit={(e) => {
+							e.preventDefault();
+							saveName();
+						}}
+					>
+						<Input
+							type="text"
+							bind:value={editName}
+							class="h-8"
+						/>
+						<Button variant="ghost" size="icon" type="submit" disabled={!editName.trim()}>
+							<CheckIcon class="h-4 w-4" />
+						</Button>
+						<Button variant="ghost" size="icon" type="button" onclick={cancelEditing}>
+							<XIcon class="h-4 w-4" />
+						</Button>
+					</form>
+				{:else}
+					<div class="flex items-center gap-2">
+						<span class="truncate">{cardSet?.name}</span>
+						{#if !isDefaultSet}
+							<Button variant="ghost" size="icon" onclick={startEditing}>
+								<PencilIcon class="h-4 w-4" />
+							</Button>
+							<Button variant="ghost" size="icon" onclick={handleDeleteClick}>
+								<Trash2Icon class="h-4 w-4 text-destructive" />
+							</Button>
+						{/if}
+					</div>
+				{/if}
+			</DialogTitle>
 		</DialogHeader>
-		<form
-			onsubmit={(e) => {
-				e.preventDefault();
-				handleSave();
-			}}
-			class="space-y-4"
-		>
-			<div class="space-y-2">
-				<Label for="edit-set-name">Set Name</Label>
-				<Input id="edit-set-name" type="text" bind:value={editName} />
-			</div>
-			<DialogFooter class="flex justify-between sm:justify-between">
-				<Button variant="destructive" type="button" onclick={handleDeleteClick} disabled={isDefaultSet}>
-					Delete Set
-				</Button>
-				<div class="flex gap-2">
-					<Button variant="outline" type="button" onclick={() => (open = false)}>
-						Cancel
-					</Button>
-					<Button type="submit" disabled={!editName.trim()}>Save</Button>
-				</div>
-			</DialogFooter>
-		</form>
+		{#if cardSet}
+			<CardManager setId={cardSet.id} />
+		{/if}
 	</DialogContent>
 </Dialog>
 

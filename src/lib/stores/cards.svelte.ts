@@ -70,6 +70,9 @@ class CardStore {
 		if (id === DEFAULT_SET_ID) return;
 		this.cardSets = this.cardSets.filter((s) => s.id !== id);
 		this.cards = this.cards.filter((c) => c.setId !== id);
+		if (this.selectedSetId === id) {
+			this.selectedSetId = DEFAULT_SET_ID;
+		}
 		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 

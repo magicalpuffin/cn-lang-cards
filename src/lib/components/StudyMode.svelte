@@ -10,6 +10,7 @@
 	import StudyCard from './StudyCard.svelte';
 	import CreateCardDialog from './CreateCardDialog.svelte';
 	import CardManager from './CardManager.svelte';
+	import { PlusIcon, SquarePenIcon } from '@lucide/svelte';
 
 	let { mode = 'sequential', setId }: { mode?: StudyMode; setId: string } = $props();
 
@@ -85,9 +86,17 @@
 {:else}
 	<div class="space-y-4">
 		<div class="flex justify-between items-center">
-			<span class="text-sm text-muted-foreground"
-				>Card {currentIndex + 1} of {studyCards.length}</span
-			>
+			<div class="flex items-center space-x-4">
+				<span class="w-20 text-sm text-muted-foreground"
+					>Card {currentIndex + 1} of {studyCards.length}</span
+				>
+				<ButtonGroup>
+					<Button variant="outline" onclick={() => (createCardOpen = true)}><PlusIcon /></Button>
+					<Button variant="outline" onclick={() => (manageCardsOpen = true)}
+						><SquarePenIcon /></Button
+					>
+				</ButtonGroup>
+			</div>
 			<ButtonGroup>
 				<Button variant="outline" onclick={() => (createCardOpen = true)}>Add Card</Button>
 				<Button variant="outline" onclick={() => (manageCardsOpen = true)}>Manage Cards</Button>
