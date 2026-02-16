@@ -15,7 +15,11 @@ function loadStorage(): StorageData {
 	if (!browser) return { cards: [], sets: [] };
 	const stored = localStorage.getItem(STORAGE_KEY);
 	if (stored) {
-		return JSON.parse(stored);
+		try {
+			return JSON.parse(stored);
+		} catch {
+			return { cards: [], sets: [] };
+		}
 	}
 	return { cards: [], sets: [] };
 }
@@ -107,7 +111,12 @@ class CardStore {
 	}
 
 	getRandomOrder(setId: string): FlashCard[] {
-		return this.getCardsBySet(setId).sort(() => Math.random() - 0.5);
+		const cards = [...this.getCardsBySet(setId)];
+		for (let i = cards.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[cards[i], cards[j]] = [cards[j], cards[i]];
+		}
+		return cards;
 	}
 }
 

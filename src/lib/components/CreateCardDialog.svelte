@@ -20,6 +20,14 @@
 	let pinyinText = $state('');
 	let english = $state('');
 
+	$effect(() => {
+		if (open) {
+			chinese = '';
+			pinyinText = '';
+			english = '';
+		}
+	});
+
 	function handleChineseInput() {
 		if (chinese.trim()) {
 			const result = pinyin(chinese, {

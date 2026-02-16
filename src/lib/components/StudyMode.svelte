@@ -40,17 +40,21 @@
 
 	$effect(() => {
 		if (api) {
-			api.on('select', () => {
+			const handler = () => {
 				currentIndex = api!.selectedScrollSnap();
 				showPinyin = false;
 				showEnglish = false;
-			});
+			};
+			api.on('select', handler);
+			return () => {
+				api!.off('select', handler);
+			};
 		}
 	});
 
 	const currentCard = $derived(studyCards[currentIndex]);
 	const hasCards = $derived(studyCards.length > 0);
-	const hasEnglish = $derived(currentCard?.english?.trim().length > 0);
+	const hasEnglish = $derived((currentCard?.english?.trim().length ?? 0) > 0);
 	// Reference currentIndex so these re-derive on slide change
 	const canScrollPrev = $derived(currentIndex >= 0 && (api?.canScrollPrev() ?? false));
 	const canScrollNext = $derived(currentIndex >= 0 && (api?.canScrollNext() ?? false));
@@ -97,10 +101,10 @@
 					>
 				</ButtonGroup>
 			</div>
-			<ButtonGroup>
-				<Button variant="outline" onclick={() => (createCardOpen = true)}>Add Card</Button>
-				<Button variant="outline" onclick={() => (manageCardsOpen = true)}>Manage Cards</Button>
-			</ButtonGroup>
+			<!-- <ButtonGroup> -->
+			<!-- 	<Button variant="outline" onclick={() => (createCardOpen = true)}>Add Card</Button> -->
+			<!-- 	<Button variant="outline" onclick={() => (manageCardsOpen = true)}>Manage Cards</Button> -->
+			<!-- </ButtonGroup> -->
 			<!-- <span class="capitalize">{mode} mode</span> -->
 		</div>
 

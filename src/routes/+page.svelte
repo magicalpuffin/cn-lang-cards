@@ -12,7 +12,7 @@
 	import { PlusIcon, SquarePenIcon } from '@lucide/svelte';
 
 	let studyMode = $state<StudyModeType>('sequential');
-	let studySetId = $state<string | null>(cardStore.selectedSetId);
+	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
 
 	let createSetOpen = $state(false);
 	let editSetOpen = $state(false);
@@ -20,9 +20,7 @@
 	const selectedSet = $derived(cardStore.cardSets.find((s) => s.id === studySetId) ?? null);
 
 	$effect(() => {
-		if (studySetId) {
-			cardStore.setSelectedSetId(studySetId);
-		}
+		cardStore.setSelectedSetId(studySetId ?? DEFAULT_SET_ID);
 	});
 </script>
 
