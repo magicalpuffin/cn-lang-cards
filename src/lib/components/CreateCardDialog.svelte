@@ -12,6 +12,7 @@
 		DialogHeader,
 		DialogTitle
 	} from '$lib/components/ui/dialog';
+	import { Debounced } from "runed";
 	import pinyin from 'pinyin';
 
 	let {
@@ -21,10 +22,10 @@
 	}: { open: boolean; setId: string; oncreate?: () => void } = $props();
 
 	let chinese = $state('');
+	let chineseDebounced = new Debounced(() => chinese, 500);
 	let pinyinText = $state('');
 	let english = $state('');
 	let translating = $state(false);
-	let translateTimer: ReturnType<typeof setTimeout> | undefined;
 	let userEditedEnglish = $state(false);
 
 	$effect(() => {
@@ -34,8 +35,31 @@
 			english = '';
 			translating = false;
 			userEditedEnglish = false;
-			if (translateTimer) clearTimeout(translateTimer);
 		}
+	});
+
+	$effect(() => {
+		const text = chineseDebounced.current;
+		if (!text?.trim() || userEditedEnglish) return;
+
+		translating = true;
+		fetch('/api/translate', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ text: text.trim() })
+		})
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				if (data?.translation && !userEditedEnglish) {
+					english = data.translation;
+				}
+			})
+			.catch(() => {
+				// Leave english empty on error
+			})
+			.finally(() => {
+				translating = false;
+			});
 	});
 
 	function handleChineseInput() {
@@ -45,31 +69,6 @@
 				heteronym: false
 			});
 			pinyinText = result.map((arr: string[]) => arr[0]).join(' ');
-
-			if (!userEditedEnglish) {
-				if (translateTimer) clearTimeout(translateTimer);
-				translating = true;
-				const textToTranslate = chinese.trim();
-				translateTimer = setTimeout(async () => {
-					try {
-						const res = await fetch('/api/translate', {
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify({ text: textToTranslate })
-						});
-						if (res.ok) {
-							const data = await res.json();
-							if (data.translation && !userEditedEnglish) {
-								english = data.translation;
-							}
-						}
-					} catch {
-						// Leave english empty on error
-					} finally {
-						translating = false;
-					}
-				}, 500);
-			}
 		} else {
 			pinyinText = '';
 		}
@@ -132,7 +131,7 @@
 				<Label for="create-english">
 					English Translation (optional)
 					{#if translating}
-						<span class="text-muted-foreground ml-1 text-xs">Translating...</span>
+						<span class="ml-1 text-xs text-muted-foreground">Translating...</span>
 					{/if}
 				</Label>
 				<Textarea
@@ -143,9 +142,7 @@
 				></Textarea>
 			</div>
 			<DialogFooter>
-				<Button variant="outline" type="button" onclick={() => (open = false)}>
-					Cancel
-				</Button>
+				<Button variant="outline" type="button" onclick={() => (open = false)}>Cancel</Button>
 				<Button type="submit" disabled={!chinese.trim()}>Add Card</Button>
 			</DialogFooter>
 		</form>
