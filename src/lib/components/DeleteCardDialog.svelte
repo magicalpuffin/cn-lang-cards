@@ -12,10 +12,15 @@
 		AlertDialogTitle
 	} from '$lib/components/ui/alert-dialog';
 
-	let { open = $bindable(false), card }: { open: boolean; card: FlashCard | null } = $props();
+	let {
+		open = $bindable(false),
+		card,
+		ondelete
+	}: { open: boolean; card: FlashCard | null; ondelete?: () => void } = $props();
 
 	function handleDelete() {
 		if (card) {
+			ondelete?.();
 			cardStore.deleteCard(card.id);
 			open = false;
 		}

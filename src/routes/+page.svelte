@@ -6,12 +6,10 @@
 	import SetSelectorCombobox from '$lib/components/SetSelectorCombobox.svelte';
 	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
 	import EditSetDialog from '$lib/components/EditSetDialog.svelte';
-	import type { StudyMode as StudyModeType } from '$lib/types';
 	import { PlusIcon, SquarePenIcon, Trash2Icon } from '@lucide/svelte';
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 
-	let studyMode = $state<StudyModeType>('sequential');
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
 
 	let createSetOpen = $state(false);
@@ -62,7 +60,7 @@
 		</div>
 
 		{#if studySetId}
-			<StudyMode mode={studyMode} setId={studySetId} />
+			<StudyMode setId={studySetId} />
 		{:else}
 			<p class="py-8 text-center text-muted-foreground">Select a set to start studying.</p>
 		{/if}
