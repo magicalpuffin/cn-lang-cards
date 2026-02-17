@@ -14,7 +14,11 @@
 	} from '$lib/components/ui/dialog';
 	import pinyin from 'pinyin';
 
-	let { open = $bindable(false), setId }: { open: boolean; setId: string } = $props();
+	let {
+		open = $bindable(false),
+		setId,
+		oncreate
+	}: { open: boolean; setId: string; oncreate?: () => void } = $props();
 
 	let chinese = $state('');
 	let pinyinText = $state('');
@@ -48,6 +52,7 @@
 				pinyin: pinyinText.trim(),
 				english: english.trim()
 			});
+			oncreate?.();
 			chinese = '';
 			pinyinText = '';
 			english = '';

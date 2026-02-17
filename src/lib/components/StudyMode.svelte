@@ -23,6 +23,7 @@
 	let showPinyin = $state(false);
 	let showEnglish = $state(false);
 	let mode = $state<StudyMode>('sequential');
+	let pendingScrollTo = $state<number | null>(null);
 	let studyCards = $derived<FlashCard[]>(
 		mode === 'random' ? cardStore.getRandomOrder(setId) : cardStore.getCardsBySet(setId)
 	);
@@ -56,6 +57,14 @@
 
 			// update canScroll reInit when cards change
 			const updateScrollState = () => {
+				if (pendingScrollTo !== null) {
+					const target = pendingScrollTo;
+					pendingScrollTo = null;
+					api!.scrollTo(target);
+					// Update currentIndex directly in case scrollTo is a no-op
+					// (e.g. already at the target position after deleting the last card)
+					currentIndex = api!.selectedScrollSnap();
+				}
 				canScrollPrev = api!.canScrollPrev();
 				canScrollNext = api!.canScrollNext();
 			};
@@ -82,8 +91,11 @@
 	let canScrollNext = $state(false);
 
 	function handleCardDelete() {
-		const newIndex = Math.max(0, currentIndex - 1);
-		api?.scrollTo(newIndex);
+		pendingScrollTo = Math.max(0, currentIndex - 1);
+	}
+
+	function handleCardCreate() {
+		pendingScrollTo = api!.scrollSnapList().length;
 	}
 </script>
 
@@ -162,7 +174,7 @@
 	</div>
 </div>
 
-<CreateCardDialog bind:open={createCardOpen} {setId} />
+<CreateCardDialog bind:open={createCardOpen} {setId} oncreate={handleCardCreate} />
 
 <Dialog bind:open={manageCardsOpen}>
 	<DialogContent class="overflow-y-auto sm:max-w-lg max-h-[80vh]">
