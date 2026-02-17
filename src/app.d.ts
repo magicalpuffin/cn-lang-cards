@@ -3,10 +3,13 @@
 declare global {
 	namespace App {
 		interface Platform {
-			env: Env;
+			env: {
+				AZ_TRANSLATOR_API_KEY: string;
+				AZ_REGION: string;
+			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
-			cf?: IncomingRequestCfProperties
+			cf?: IncomingRequestCfProperties;
 		}
 
 		// interface Error {}

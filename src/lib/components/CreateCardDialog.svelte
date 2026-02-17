@@ -23,12 +23,18 @@
 	let chinese = $state('');
 	let pinyinText = $state('');
 	let english = $state('');
+	let translating = $state(false);
+	let translateTimer: ReturnType<typeof setTimeout> | undefined;
+	let userEditedEnglish = $state(false);
 
 	$effect(() => {
 		if (open) {
 			chinese = '';
 			pinyinText = '';
 			english = '';
+			translating = false;
+			userEditedEnglish = false;
+			if (translateTimer) clearTimeout(translateTimer);
 		}
 	});
 
@@ -39,9 +45,38 @@
 				heteronym: false
 			});
 			pinyinText = result.map((arr: string[]) => arr[0]).join(' ');
+
+			if (!userEditedEnglish) {
+				if (translateTimer) clearTimeout(translateTimer);
+				translating = true;
+				const textToTranslate = chinese.trim();
+				translateTimer = setTimeout(async () => {
+					try {
+						const res = await fetch('/api/translate', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({ text: textToTranslate })
+						});
+						if (res.ok) {
+							const data = await res.json();
+							if (data.translation && !userEditedEnglish) {
+								english = data.translation;
+							}
+						}
+					} catch {
+						// Leave english empty on error
+					} finally {
+						translating = false;
+					}
+				}, 500);
+			}
 		} else {
 			pinyinText = '';
 		}
+	}
+
+	function handleEnglishInput() {
+		userEditedEnglish = english.trim().length > 0;
 	}
 
 	function handleSubmit() {
@@ -94,10 +129,16 @@
 				/>
 			</div>
 			<div class="space-y-2">
-				<Label for="create-english">English Translation (optional)</Label>
+				<Label for="create-english">
+					English Translation (optional)
+					{#if translating}
+						<span class="text-muted-foreground ml-1 text-xs">Translating...</span>
+					{/if}
+				</Label>
 				<Textarea
 					id="create-english"
 					bind:value={english}
+					oninput={handleEnglishInput}
 					placeholder="Enter English translation (optional)..."
 				></Textarea>
 			</div>
