@@ -1,18 +1,17 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "svelte-lang-cards",
-  "compatibility_date": "2026-02-12",
-  "compatibility_flags": [
-    "nodejs_als"
-  ],
-  "main": ".svelte-kit/cloudflare/_worker.js",
-  "assets": {
-    "binding": "ASSETS",
-    "directory": ".svelte-kit/cloudflare"
-  },
-  "workers_dev": true,
-  "preview_urls": true,
-  "observability": {
-    "enabled": true
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cn-lang-cards",
+	"compatibility_date": "2026-02-12",
+	"compatibility_flags": ["nodejs_als"],
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"assets": {
+		"binding": "ASSETS",
+		"directory": ".svelte-kit/cloudflare"
+	},
+	"workers_dev": true,
+	"preview_urls": true,
+	"observability": {
+		"enabled": true
+	}
 }
+
