@@ -10,7 +10,8 @@
 	import StudyCard from './StudyCard.svelte';
 	import CreateCardDialog from './CreateCardDialog.svelte';
 	import CardManager from './CardManager.svelte';
-	import { PlusIcon, SquarePenIcon } from '@lucide/svelte';
+	import { PlusIcon, ShuffleIcon, SquarePenIcon } from '@lucide/svelte';
+	import { Toggle } from '$lib/components/ui/toggle';
 
 	let { mode = 'sequential', setId }: { mode?: StudyMode; setId: string } = $props();
 
@@ -103,6 +104,16 @@
 					>
 				</ButtonGroup>
 			</div>
+			<Toggle
+				aria-label="Toggle shuffle"
+				variant="outline"
+				onPressedChange={(v) => {
+					mode = v ? 'random' : 'sequential';
+				}}
+			>
+				<ShuffleIcon />
+				<span class="hidden md:inline"> Shuffle </span>
+			</Toggle>
 			<!-- <ButtonGroup> -->
 			<!-- 	<Button variant="outline" onclick={() => (createCardOpen = true)}>Add Card</Button> -->
 			<!-- 	<Button variant="outline" onclick={() => (manageCardsOpen = true)}>Manage Cards</Button> -->

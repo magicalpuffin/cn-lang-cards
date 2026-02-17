@@ -29,16 +29,16 @@
 			<Button
 				{...props}
 				variant="outline"
-				class="w-[200px] justify-between overflow-hidden"
+				class="overflow-hidden justify-between w-40 md:w-52"
 				role="combobox"
 				aria-expanded={open}
 			>
 				<span class="truncate">{selectedLabel || 'Select a set...'}</span>
-				<ChevronsUpDownIcon class="shrink-0 opacity-50" />
+				<ChevronsUpDownIcon class="opacity-50 shrink-0" />
 			</Button>
 		{/snippet}
 	</Popover.Trigger>
-	<Popover.Content class="w-[200px] p-0">
+	<Popover.Content class="p-0 w-40 md:w-52">
 		<Command.Root>
 			<Command.Input placeholder="Search sets..." />
 			<Command.List>

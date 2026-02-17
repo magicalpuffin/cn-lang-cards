@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { cardStore, DEFAULT_SET_ID } from '$lib/stores/cards.svelte';
-	import { Tabs, TabsContent, TabsList, TabsTrigger } from '$lib/components/ui/tabs';
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
-	import CardManager from '$lib/components/CardManager.svelte';
 	import StudyMode from '$lib/components/StudyMode.svelte';
 	import SetSelectorCombobox from '$lib/components/SetSelectorCombobox.svelte';
 	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
@@ -11,6 +9,7 @@
 	import type { StudyMode as StudyModeType } from '$lib/types';
 	import { PlusIcon, SquarePenIcon, Trash2Icon } from '@lucide/svelte';
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
+	import { Separator } from '$lib/components/ui/separator';
 
 	let studyMode = $state<StudyModeType>('sequential');
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
@@ -27,79 +26,53 @@
 </script>
 
 <div class="container p-4 mx-auto max-w-4xl">
-	<h1 class="mb-8 text-4xl font-bold text-center">Chinese Flashcards</h1>
+	<h1 class="font-mono font-bold tracking-wide text-center md:text-2xl">Chinese Language Cards</h1>
+	<Separator class="my-2 md:my-4" />
 
-	<Tabs value="study" class="w-full">
-		<TabsList class="grid grid-cols-3 w-full">
-			<TabsTrigger value="manage">Manage Cards</TabsTrigger>
-			<TabsTrigger value="study">Study</TabsTrigger>
-			<TabsTrigger value="settings">Settings</TabsTrigger>
-		</TabsList>
-
-		<TabsContent value="manage" class="mt-6 space-y-6">
-			<CardManager />
-		</TabsContent>
-
-		<TabsContent value="study" class="mt-6">
-			<div class="space-y-6">
-				<div class="flex flex-wrap justify-between items-center">
-					<div class="flex items-center space-x-4">
-						<span class="w-20 text-sm text-muted-foreground">Card Set</span>
-						<ButtonGroup>
-							<ButtonGroup>
-								<SetSelectorCombobox bind:value={studySetId} />
-								<Button
-									variant="outline"
-									size="icon"
-									onclick={() => (editSetOpen = true)}
-									disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
-								>
-								<Button
-									variant="outline"
-									size="icon"
-									onclick={() => (deleteSetOpen = true)}
-									disabled={!studySetId || studySetId === DEFAULT_SET_ID}
-									><Trash2Icon class="text-destructive" /></Button
-								>
-							</ButtonGroup>
-							<ButtonGroup>
-								<Button variant="outline" size="icon" onclick={() => (createSetOpen = true)}
-									><PlusIcon /></Button
-								>
-							</ButtonGroup>
-						</ButtonGroup>
-					</div>
-
+	<div class="space-y-6">
+		<div class="flex flex-wrap justify-between items-center">
+			<div class="flex items-center space-x-4">
+				<span class="hidden w-20 text-sm md:inline text-muted-foreground">Card Set</span>
+				<ButtonGroup>
 					<ButtonGroup>
+						<SetSelectorCombobox bind:value={studySetId} />
 						<Button
-							variant={studyMode === 'sequential' ? 'default' : 'outline'}
-							onclick={() => (studyMode = 'sequential')}
+							aria-label="Edit card set"
+							variant="outline"
+							size="icon"
+							onclick={() => (editSetOpen = true)}
+							disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
 						>
-							Sequential
-						</Button>
 						<Button
-							variant={studyMode === 'random' ? 'default' : 'outline'}
-							onclick={() => (studyMode = 'random')}
+							aria-label="Delete card set"
+							variant="outline"
+							size="icon"
+							onclick={() => (deleteSetOpen = true)}
+							disabled={!studySetId || studySetId === DEFAULT_SET_ID}
+							><Trash2Icon class="text-destructive" /></Button
 						>
-							Random
-						</Button>
 					</ButtonGroup>
-				</div>
-
-				{#if studySetId}
-					<StudyMode mode={studyMode} setId={studySetId} />
-				{:else}
-					<p class="py-8 text-center text-muted-foreground">Select a set to start studying.</p>
-				{/if}
+					<ButtonGroup>
+						<Button aria-label="Create card set" size="icon" onclick={() => (createSetOpen = true)}
+							><PlusIcon /></Button
+						>
+					</ButtonGroup>
+				</ButtonGroup>
 			</div>
-		</TabsContent>
+		</div>
 
-		<TabsContent value="settings" class="mt-6">
-			<div class="py-12 text-center text-muted-foreground">Settings coming soon...</div>
-		</TabsContent>
-	</Tabs>
+		{#if studySetId}
+			<StudyMode mode={studyMode} setId={studySetId} />
+		{:else}
+			<p class="py-8 text-center text-muted-foreground">Select a set to start studying.</p>
+		{/if}
+	</div>
 </div>
 
 <CreateSetDialog bind:open={createSetOpen} oncreate={(id) => (studySetId = id)} />
 <EditSetDialog bind:open={editSetOpen} cardSet={selectedSet} />
-<DeleteSetDialog bind:open={deleteSetOpen} cardSet={selectedSet} ondelete={() => (studySetId = DEFAULT_SET_ID)} />
+<DeleteSetDialog
+	bind:open={deleteSetOpen}
+	cardSet={selectedSet}
+	ondelete={() => (studySetId = DEFAULT_SET_ID)}
+/>
