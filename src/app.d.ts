@@ -6,6 +6,7 @@ declare global {
 			env: {
 				AZ_TRANSLATOR_API_KEY: string;
 				AZ_REGION: string;
+				DB: D1Database;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;

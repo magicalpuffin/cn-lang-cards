@@ -1,0 +1,30 @@
+import { json } from "@sveltejs/kit";
+import { drizzle } from "drizzle-orm/d1";
+import { task } from "$lib/server/db/schema";
+import type { RequestHandler } from "./$types";
+
+export const GET: RequestHandler = async ({ platform }) => {
+	if (!platform?.env?.DB) {
+		return json({ error: "Database not available" }, { status: 500 });
+	}
+
+	const db = drizzle(platform.env.DB);
+	const tasks = await db.select().from(task);
+
+	return json({ tasks });
+};
+
+export const POST: RequestHandler = async ({ request, platform }) => {
+	if (!platform?.env?.DB) {
+		return json({ error: "Database not available" }, { status: 500 });
+	}
+
+	const body = await request.json();
+	const db = drizzle(platform.env.DB);
+	const inserted = await db
+		.insert(task)
+		.values({ cardSet: body?.cardSet ?? null })
+		.returning();
+
+	return json({ task: inserted[0] }, { status: 201 });
+};

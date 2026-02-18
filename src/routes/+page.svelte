@@ -12,7 +12,8 @@
 		LayoutListIcon,
 		PlusIcon,
 		SquarePenIcon,
-		Trash2Icon
+		Trash2Icon,
+		UploadIcon
 	} from '@lucide/svelte';
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
@@ -27,6 +28,22 @@
 	let deleteSetOpen = $state(false);
 
 	const selectedSet = $derived(cardStore.cardSets.find((s) => s.id === studySetId) ?? null);
+
+	let saving = $state(false);
+
+	async function saveToDb() {
+		if (!selectedSet) return;
+		saving = true;
+		try {
+			await fetch('/api/test-db', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ cardSet: selectedSet })
+			});
+		} finally {
+			saving = false;
+		}
+	}
 
 	$effect(() => {
 		cardStore.setSelectedSetId(studySetId ?? DEFAULT_SET_ID);
@@ -67,22 +84,33 @@
 					</ButtonGroup>
 				</ButtonGroup>
 			</div>
-			<ButtonGroup>
-				<Toggle
+			<div class="flex items-center gap-2">
+				<Button
 					variant="outline"
-					pressed={!viewAll}
-					onPressedChange={() => (viewAll = false)}
+					size="icon"
+					aria-label="Save card set to database"
+					disabled={!selectedSet || saving}
+					onclick={saveToDb}
 				>
-					<GalleryHorizontalIcon />Study
-				</Toggle>
-				<Toggle
-					variant="outline"
-					pressed={viewAll}
-					onPressedChange={() => (viewAll = true)}
-				>
-					<LayoutListIcon />View All
-				</Toggle>
-			</ButtonGroup>
+					<UploadIcon />
+				</Button>
+				<ButtonGroup>
+					<Toggle
+						variant="outline"
+						pressed={!viewAll}
+						onPressedChange={() => (viewAll = false)}
+					>
+						<GalleryHorizontalIcon />Study
+					</Toggle>
+					<Toggle
+						variant="outline"
+						pressed={viewAll}
+						onPressedChange={() => (viewAll = true)}
+					>
+						<LayoutListIcon />View All
+					</Toggle>
+				</ButtonGroup>
+			</div>
 		</div>
 
 		{#if studySetId}
