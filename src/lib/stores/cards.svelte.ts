@@ -110,6 +110,18 @@ class CardStore {
 		saveStorage(this.cards, this.cardSets, this.selectedSetId);
 	}
 
+	reorderCards(setId: string, orderedIds: string[]) {
+		const otherCards = this.cards.filter((c) => c.setId !== setId);
+		const cardMap = new Map(
+			this.cards.filter((c) => c.setId === setId).map((c) => [c.id, c]),
+		);
+		const reordered = orderedIds
+			.map((id) => cardMap.get(id))
+			.filter((c): c is FlashCard => c !== undefined);
+		this.cards = [...otherCards, ...reordered];
+		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+	}
+
 	getRandomOrder(setId: string): FlashCard[] {
 		const cards = [...this.getCardsBySet(setId)];
 		for (let i = cards.length - 1; i > 0; i--) {

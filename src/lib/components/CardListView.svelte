@@ -1,97 +1,51 @@
 <script lang="ts">
 	import { cardStore } from '$lib/stores/cards.svelte';
-	import type { FlashCard } from '$lib/types';
 	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Button } from '$lib/components/ui/button';
-	import { SquarePenIcon, Trash2Icon } from '@lucide/svelte';
-	import { ButtonGroup } from '$lib/components/ui/button-group';
-	import EditCardDialog from './EditCardDialog.svelte';
-	import DeleteCardDialog from './DeleteCardDialog.svelte';
+	import CardListItem from './CardListItem.svelte';
+	import Sortable from 'sortablejs';
 
 	let { setId, onviewcard }: { setId: string; onviewcard?: (index: number) => void } = $props();
 
-	let editDialogOpen = $state(false);
-	let deleteDialogOpen = $state(false);
-	let activeCard = $state<FlashCard | null>(null);
-
 	const cards = $derived(cardStore.getCardsBySet(setId));
 
-	function openEditDialog(card: FlashCard) {
-		activeCard = card;
-		editDialogOpen = true;
-	}
+	let listEl = $state<HTMLDivElement>();
 
-	function openDeleteDialog(card: FlashCard) {
-		activeCard = card;
-		deleteDialogOpen = true;
-	}
+	$effect(() => {
+		if (!listEl) return;
+
+		const sortable = Sortable.create(listEl, {
+			animation: 150,
+			handle: '.drag-handle',
+			onEnd(evt) {
+				const { oldIndex, newIndex, item, from } = evt;
+				if (oldIndex == null || newIndex == null || oldIndex === newIndex) return;
+
+				// Read the new order from DOM before reverting
+				const orderedIds = Array.from(from.children).map(
+					(el) => (el as HTMLElement).dataset.cardId!
+				);
+
+				// Revert DOM change so Svelte stays in control
+				from.removeChild(item);
+				if (oldIndex < from.children.length) {
+					from.insertBefore(item, from.children[oldIndex]);
+				} else {
+					from.appendChild(item);
+				}
+
+				cardStore.reorderCards(setId, orderedIds);
+			}
+		});
+
+		return () => sortable.destroy();
+	});
 </script>
 
-<div class="space-y-2">
+<div class="space-y-2" bind:this={listEl}>
 	{#each cards as card, i (card.id)}
-		<div class="p-4 rounded-xl border hover:bg-muted/50">
-			<div class="flex justify-between items-center mb-2">
-				<div>
-					<span class="text-sm text-muted-foreground">{i + 1}.</span>
-
-					<Button variant="link" size="default" onclick={() => onviewcard?.(i)}>View Card</Button>
-				</div>
-				<ButtonGroup>
-					<Button
-						aria-label="Edit card"
-						variant="ghost"
-						size="icon"
-						onclick={() => openEditDialog(card)}
-					>
-						<SquarePenIcon />
-					</Button>
-					<Button
-						aria-label="Delete card"
-						variant="ghost"
-						size="icon"
-						class="text-destructive"
-						onclick={() => openDeleteDialog(card)}
-					>
-						<Trash2Icon />
-					</Button>
-				</ButtonGroup>
-			</div>
-			<div class="flex flex-col space-y-2">
-				<div class="text-2xl font-medium">{card.chinese}</div>
-				<div class="text-sm text-muted-foreground">{card.pinyin}</div>
-				{#if card.english}
-					<div class="text-sm">{card.english}</div>
-				{/if}
-			</div>
+		<div data-card-id={card.id}>
+			<CardListItem {card} index={i} onviewcard={() => onviewcard?.(i)} />
 		</div>
-		<!-- <div class="flex gap-3 items-start p-3 rounded-md border hover:bg-muted/50"> -->
-		<!-- 	<div class="flex-1 space-y-1"> -->
-		<!-- 		<div class="text-2xl font-medium">{card.chinese}</div> -->
-		<!-- 		<div class="text-sm text-muted-foreground">{card.pinyin}</div> -->
-		<!-- 		{#if card.english} -->
-		<!-- 			<div class="text-sm">{card.english}</div> -->
-		<!-- 		{/if} -->
-		<!-- 	</div> -->
-		<!-- 	<ButtonGroup> -->
-		<!-- 		<Button -->
-		<!-- 			aria-label="Edit card" -->
-		<!-- 			variant="ghost" -->
-		<!-- 			size="icon" -->
-		<!-- 			onclick={() => openEditDialog(card)} -->
-		<!-- 		> -->
-		<!-- 			<SquarePenIcon /> -->
-		<!-- 		</Button> -->
-		<!-- 		<Button -->
-		<!-- 			aria-label="Delete card" -->
-		<!-- 			variant="ghost" -->
-		<!-- 			size="icon" -->
-		<!-- 			class="text-destructive" -->
-		<!-- 			onclick={() => openDeleteDialog(card)} -->
-		<!-- 		> -->
-		<!-- 			<Trash2Icon /> -->
-		<!-- 		</Button> -->
-		<!-- 	</ButtonGroup> -->
-		<!-- </div> -->
 	{:else}
 		<Card>
 			<CardContent class="py-12 text-center">
@@ -101,6 +55,3 @@
 		</Card>
 	{/each}
 </div>
-
-<EditCardDialog bind:open={editDialogOpen} card={activeCard} />
-<DeleteCardDialog bind:open={deleteDialogOpen} card={activeCard} />
