@@ -3,15 +3,24 @@
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import StudyMode from '$lib/components/StudyMode.svelte';
+	import CardListView from '$lib/components/CardListView.svelte';
 	import SetSelectorCombobox from '$lib/components/SetSelectorCombobox.svelte';
 	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
 	import EditSetDialog from '$lib/components/EditSetDialog.svelte';
-	import { PlusIcon, SquarePenIcon, Trash2Icon } from '@lucide/svelte';
+	import {
+		GalleryHorizontalIcon,
+		LayoutListIcon,
+		PlusIcon,
+		SquarePenIcon,
+		Trash2Icon
+	} from '@lucide/svelte';
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
+	import { Toggle } from '$lib/components/ui/toggle';
 
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
 
+	let viewAll = $state(false);
 	let createSetOpen = $state(false);
 	let editSetOpen = $state(false);
 	let deleteSetOpen = $state(false);
@@ -57,10 +66,30 @@
 					</ButtonGroup>
 				</ButtonGroup>
 			</div>
+			<ButtonGroup>
+				<Toggle
+					variant="outline"
+					pressed={!viewAll}
+					onPressedChange={() => (viewAll = false)}
+				>
+					<GalleryHorizontalIcon />Study
+				</Toggle>
+				<Toggle
+					variant="outline"
+					pressed={viewAll}
+					onPressedChange={() => (viewAll = true)}
+				>
+					<LayoutListIcon />View All
+				</Toggle>
+			</ButtonGroup>
 		</div>
 
 		{#if studySetId}
-			<StudyMode setId={studySetId} />
+			{#if viewAll}
+				<CardListView setId={studySetId} />
+			{:else}
+				<StudyMode setId={studySetId} />
+			{/if}
 		{:else}
 			<p class="py-8 text-center text-muted-foreground">Select a set to start studying.</p>
 		{/if}

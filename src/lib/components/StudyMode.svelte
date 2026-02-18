@@ -103,20 +103,25 @@
 	<div class="flex justify-between items-center">
 		<div class="flex items-center space-x-4">
 			{#if hasCards}
-				<span class="w-24 text-sm text-muted-foreground"
+				<span class="hidden w-24 text-sm md:inline text-muted-foreground"
 					>Card {currentIndex + 1} of {studyCards.length}</span
 				>
 			{:else}
 				<span class="w-20 text-sm text-muted-foreground">No Cards</span>
 			{/if}
-			<CardSelectorCombobox value={selectedCardId} cards={studyCards} onselect={handleCardSelect} />
 			<ButtonGroup>
-				<Button variant="outline" size="icon" onclick={() => (createCardOpen = true)}
-					><PlusIcon /></Button
-				>
-				<Button variant="outline" size="icon" onclick={() => (manageCardsOpen = true)}
-					><SquarePenIcon /></Button
-				>
+				<ButtonGroup>
+					<CardSelectorCombobox
+						value={selectedCardId}
+						cards={studyCards}
+						onselect={handleCardSelect}
+					/>
+				</ButtonGroup>
+				<ButtonGroup>
+					<Button variant="default" size="icon" onclick={() => (createCardOpen = true)}
+						><PlusIcon /></Button
+					>
+				</ButtonGroup>
 			</ButtonGroup>
 		</div>
 		<Toggle

@@ -67,7 +67,7 @@
 			>
 		</ButtonGroup>
 	</div>
-	<div class="flex justify-center items-center p-4 min-h-72">
+	<div class="flex justify-center items-center min-h-72">
 		<div class="space-y-4 text-center">
 			<!-- Always show Chinese -->
 			<div class="text-6xl font-medium">{card.chinese}</div>
@@ -102,11 +102,7 @@
 		</div>
 
 		<div class="flex justify-center md:justify-start">
-			<Toggle
-				variant="outline"
-				pressed={allRevealed}
-				onPressedChange={onToggleAllChange}
-			>
+			<Toggle variant="outline" pressed={allRevealed} onPressedChange={onToggleAllChange}>
 				{#if allRevealed}
 					<EyeIcon /> Hide All
 				{:else}
