@@ -81,6 +81,18 @@ class CardStore {
 		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
+	importSet(cardSet: CardSet) {
+		const existingIndex = this.cardSets.findIndex((s) => s.id === cardSet.id);
+		if (existingIndex !== -1) {
+			this.cardSets = this.cardSets.map((s) =>
+				s.id === cardSet.id ? cardSet : s,
+			);
+		} else {
+			this.cardSets = [...this.cardSets, cardSet];
+		}
+		saveStorage(this.cardSets, this.selectedSetId);
+	}
+
 	getCardsBySet(setId: string): FlashCard[] {
 		return this.cardSets.find((s) => s.id === setId)?.cards ?? [];
 	}

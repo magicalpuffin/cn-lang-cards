@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { cardStore, DEFAULT_SET_ID } from '$lib/stores/cards.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
@@ -18,8 +19,35 @@
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Toggle } from '$lib/components/ui/toggle';
+	import type { CardSet } from '$lib/types';
 
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
+
+	onMount(async () => {
+		const params = new URLSearchParams(window.location.search);
+		const shareId = params.get('share');
+		if (!shareId) return;
+
+		history.replaceState(null, '', window.location.pathname);
+
+		try {
+			const res = await fetch(`/api/card-set/${shareId}`);
+			if (!res.ok) {
+				console.error('Failed to fetch shared card set:', res.status);
+				return;
+			}
+			const data = await res.json();
+			const importedSet = data.shareCardSet?.cardSet as CardSet | undefined;
+			if (!importedSet) {
+				console.error('No card set found in response');
+				return;
+			}
+			cardStore.importSet(importedSet);
+			studySetId = importedSet.id;
+		} catch (err) {
+			console.error('Error importing shared card set:', err);
+		}
+	});
 
 	let viewAll = $state(false);
 	let initialCardIndex = $state(0);
