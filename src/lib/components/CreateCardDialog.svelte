@@ -80,8 +80,7 @@
 
 	function handleSubmit() {
 		if (chinese.trim()) {
-			cardStore.addCard({
-				setId,
+			cardStore.addCard(setId, {
 				chinese: chinese.trim(),
 				pinyin: pinyinText.trim(),
 				english: english.trim()

@@ -6,49 +6,49 @@ export const DEFAULT_SET_ID = "default-set";
 const STORAGE_KEY = "cn-lang-cards";
 
 interface StorageData {
-	cards: FlashCard[];
 	sets: CardSet[];
 	selectedSetId?: string;
 }
 
 function loadStorage(): StorageData {
-	if (!browser) return { cards: [], sets: [] };
+	if (!browser) return { sets: [] };
 	const stored = localStorage.getItem(STORAGE_KEY);
 	if (stored) {
 		try {
 			return JSON.parse(stored);
 		} catch {
-			return { cards: [], sets: [] };
+			return { sets: [] };
 		}
 	}
-	return { cards: [], sets: [] };
+	return { sets: [] };
 }
 
 function ensureDefaultSet(sets: CardSet[]): CardSet[] {
 	if (sets.some((s) => s.id === DEFAULT_SET_ID)) return sets;
-	return [{ id: DEFAULT_SET_ID, name: "Default Set", createdAt: 0 }, ...sets];
+	return [
+		{ id: DEFAULT_SET_ID, name: "Default Set", cards: [], createdAt: 0 },
+		...sets,
+	];
 }
 
-function saveStorage(cards: FlashCard[], sets: CardSet[], selectedSetId?: string) {
+function saveStorage(sets: CardSet[], selectedSetId?: string) {
 	if (!browser) return;
-	localStorage.setItem(STORAGE_KEY, JSON.stringify({ cards, sets, selectedSetId }));
+	localStorage.setItem(STORAGE_KEY, JSON.stringify({ sets, selectedSetId }));
 }
 
 class CardStore {
-	cards = $state<FlashCard[]>([]);
 	cardSets = $state<CardSet[]>([]);
 	selectedSetId = $state<string>(DEFAULT_SET_ID);
 
 	constructor() {
 		const data = loadStorage();
-		this.cards = data.cards;
 		this.cardSets = ensureDefaultSet(data.sets);
 		this.selectedSetId = data.selectedSetId ?? DEFAULT_SET_ID;
 	}
 
 	setSelectedSetId(id: string) {
 		this.selectedSetId = id;
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	// Set methods
@@ -56,10 +56,11 @@ class CardStore {
 		const newSet: CardSet = {
 			id: crypto.randomUUID(),
 			name,
+			cards: [],
 			createdAt: Date.now(),
 		};
 		this.cardSets = [...this.cardSets, newSet];
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		saveStorage(this.cardSets, this.selectedSetId);
 		return newSet.id;
 	}
 
@@ -67,59 +68,68 @@ class CardStore {
 		this.cardSets = this.cardSets.map((s) =>
 			s.id === id ? { ...s, name } : s,
 		);
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	deleteSet(id: string) {
 		if (id === DEFAULT_SET_ID) return;
 		this.cardSets = this.cardSets.filter((s) => s.id !== id);
-		this.cards = this.cards.filter((c) => c.setId !== id);
 		if (this.selectedSetId === id) {
 			this.selectedSetId = DEFAULT_SET_ID;
 		}
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	getCardsBySet(setId: string): FlashCard[] {
-		return this.cards.filter((c) => c.setId === setId);
+		return this.cardSets.find((s) => s.id === setId)?.cards ?? [];
 	}
 
 	// Card methods
-	addCard(card: Omit<FlashCard, "id" | "createdAt">) {
+	addCard(setId: string, card: Omit<FlashCard, "id" | "createdAt">) {
 		const newCard: FlashCard = {
 			...card,
 			id: crypto.randomUUID(),
 			createdAt: Date.now(),
 		};
-		this.cards = [...this.cards, newCard];
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		this.cardSets = this.cardSets.map((s) =>
+			s.id === setId ? { ...s, cards: [...s.cards, newCard] } : s,
+		);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
-	deleteCard(id: string) {
-		this.cards = this.cards.filter((c) => c.id !== id);
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+	deleteCard(setId: string, id: string) {
+		this.cardSets = this.cardSets.map((s) =>
+			s.id === setId ? { ...s, cards: s.cards.filter((c) => c.id !== id) } : s,
+		);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	updateCard(
+		setId: string,
 		id: string,
 		updates: Partial<Omit<FlashCard, "id" | "createdAt">>,
 	) {
-		this.cards = this.cards.map((c) =>
-			c.id === id ? { ...c, ...updates } : c,
+		this.cardSets = this.cardSets.map((s) =>
+			s.id === setId
+				? {
+						...s,
+						cards: s.cards.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+					}
+				: s,
 		);
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	reorderCards(setId: string, orderedIds: string[]) {
-		const otherCards = this.cards.filter((c) => c.setId !== setId);
-		const cardMap = new Map(
-			this.cards.filter((c) => c.setId === setId).map((c) => [c.id, c]),
-		);
-		const reordered = orderedIds
-			.map((id) => cardMap.get(id))
-			.filter((c): c is FlashCard => c !== undefined);
-		this.cards = [...otherCards, ...reordered];
-		saveStorage(this.cards, this.cardSets, this.selectedSetId);
+		this.cardSets = this.cardSets.map((s) => {
+			if (s.id !== setId) return s;
+			const cardMap = new Map(s.cards.map((c) => [c.id, c]));
+			const reordered = orderedIds
+				.map((id) => cardMap.get(id))
+				.filter((c): c is FlashCard => c !== undefined);
+			return { ...s, cards: reordered };
+		});
+		saveStorage(this.cardSets, this.selectedSetId);
 	}
 
 	getRandomOrder(setId: string): FlashCard[] {

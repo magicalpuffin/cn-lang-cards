@@ -116,8 +116,8 @@
 	</Card>
 
 	<CreateCardDialog bind:open={createDialogOpen} setId={activeSetId} />
-	<EditCardDialog bind:open={editDialogOpen} card={activeCard} />
-	<DeleteCardDialog bind:open={deleteDialogOpen} card={activeCard} />
+	<EditCardDialog bind:open={editDialogOpen} card={activeCard} setId={activeSetId!} />
+	<DeleteCardDialog bind:open={deleteDialogOpen} card={activeCard} setId={activeSetId!} />
 {/if}
 
 <CreateCardDialog bind:open={quickAddOpen} setId={DEFAULT_SET_ID} />

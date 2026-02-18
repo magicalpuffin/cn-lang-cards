@@ -18,7 +18,7 @@
 		ondelete
 	}: { open: boolean; cardSet: CardSet | null; ondelete?: () => void } = $props();
 
-	const cardCount = $derived(cardSet ? cardStore.getCardsBySet(cardSet.id).length : 0);
+	const cardCount = $derived(cardSet ? cardSet.cards.length : 0);
 
 	function handleDelete() {
 		if (cardSet) {

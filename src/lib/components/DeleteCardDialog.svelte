@@ -15,13 +15,14 @@
 	let {
 		open = $bindable(false),
 		card,
+		setId,
 		ondelete
-	}: { open: boolean; card: FlashCard | null; ondelete?: () => void } = $props();
+	}: { open: boolean; card: FlashCard | null; setId: string; ondelete?: () => void } = $props();
 
 	function handleDelete() {
 		if (card) {
 			ondelete?.();
-			cardStore.deleteCard(card.id);
+			cardStore.deleteCard(setId, card.id);
 			open = false;
 		}
 	}

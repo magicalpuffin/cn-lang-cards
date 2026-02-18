@@ -63,7 +63,7 @@
 						<div class="flex-1 space-y-1">
 							<div class="text-lg font-medium">{set.name}</div>
 							<div class="text-sm text-muted-foreground">
-								{cardStore.getCardsBySet(set.id).length} cards
+								{set.cards.length} cards
 							</div>
 						</div>
 

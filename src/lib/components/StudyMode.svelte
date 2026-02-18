@@ -150,6 +150,7 @@
 				<Carousel.Item>
 					<StudyCard
 						{card}
+						{setId}
 						isActive={card.id === currentCard?.id}
 						bind:showPinyin
 						bind:showEnglish

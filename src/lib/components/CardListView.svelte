@@ -26,13 +26,13 @@
 				);
 
 				// Revert DOM change so Svelte stays in control
-				from.removeChild(item);
-				if (oldIndex < from.children.length) {
-					from.insertBefore(item, from.children[oldIndex]);
-				} else {
-					from.appendChild(item);
-				}
-
+				// from.removeChild(item);
+				// if (oldIndex < from.children.length) {
+				// 	from.insertBefore(item, from.children[oldIndex]);
+				// } else {
+				// 	from.appendChild(item);
+				// }
+				//
 				cardStore.reorderCards(setId, orderedIds);
 			}
 		});
@@ -44,7 +44,7 @@
 <div class="space-y-2" bind:this={listEl}>
 	{#each cards as card, i (card.id)}
 		<div data-card-id={card.id}>
-			<CardListItem {card} index={i} onviewcard={() => onviewcard?.(i)} />
+			<CardListItem {card} {setId} index={i} onviewcard={() => onviewcard?.(i)} />
 		</div>
 	{:else}
 		<Card>

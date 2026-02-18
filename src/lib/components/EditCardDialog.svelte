@@ -15,7 +15,7 @@
 	} from '$lib/components/ui/dialog';
 	import pinyin from 'pinyin';
 
-	let { open = $bindable(false), card }: { open: boolean; card: FlashCard | null } = $props();
+	let { open = $bindable(false), card, setId }: { open: boolean; card: FlashCard | null; setId: string } = $props();
 
 	let editChinese = $state('');
 	let editPinyin = $state('');
@@ -43,7 +43,7 @@
 
 	function handleSave() {
 		if (card && editChinese.trim()) {
-			cardStore.updateCard(card.id, {
+			cardStore.updateCard(setId, card.id, {
 				chinese: editChinese.trim(),
 				pinyin: editPinyin.trim(),
 				english: editEnglish.trim()

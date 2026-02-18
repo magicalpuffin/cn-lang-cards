@@ -10,12 +10,14 @@
 
 	let {
 		card,
+		setId,
 		isActive,
 		showPinyin = $bindable(false),
 		showEnglish = $bindable(false),
 		ondelete
 	}: {
 		card: FlashCard;
+		setId: string;
 		isActive: boolean;
 		showPinyin: boolean;
 		showEnglish: boolean;
@@ -113,5 +115,5 @@
 	</div>
 </div>
 
-<EditCardDialog bind:open={editOpen} {card} />
-<DeleteCardDialog bind:open={deleteOpen} {card} {ondelete} />
+<EditCardDialog bind:open={editOpen} {card} {setId} />
+<DeleteCardDialog bind:open={deleteOpen} {card} {setId} {ondelete} />

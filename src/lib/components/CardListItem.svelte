@@ -8,11 +8,13 @@
 
 	let {
 		card,
+		setId,
 		index,
 		onviewcard,
 		ondelete
 	}: {
 		card: FlashCard;
+		setId: string;
 		index: number;
 		onviewcard?: () => void;
 		ondelete?: () => void;
@@ -61,5 +63,5 @@
 	</div>
 </div>
 
-<EditCardDialog bind:open={editDialogOpen} {card} />
-<DeleteCardDialog bind:open={deleteDialogOpen} {card} {ondelete} />
+<EditCardDialog bind:open={editDialogOpen} {card} {setId} />
+<DeleteCardDialog bind:open={deleteDialogOpen} {card} {setId} {ondelete} />
