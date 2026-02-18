@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import { browser } from "$app/environment";
 import type { CardSet, FlashCard } from "$lib/types";
 
@@ -54,7 +55,7 @@ class CardStore {
 	// Set methods
 	addSet(name: string): string {
 		const newSet: CardSet = {
-			id: crypto.randomUUID(),
+			id: nanoid(),
 			name,
 			cards: [],
 			createdAt: Date.now(),
@@ -88,7 +89,7 @@ class CardStore {
 	addCard(setId: string, card: Omit<FlashCard, "id" | "createdAt">) {
 		const newCard: FlashCard = {
 			...card,
-			id: crypto.randomUUID(),
+			id: nanoid(),
 			createdAt: Date.now(),
 		};
 		this.cardSets = this.cardSets.map((s) =>

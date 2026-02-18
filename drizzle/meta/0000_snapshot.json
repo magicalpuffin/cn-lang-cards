@@ -1,11 +1,11 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d22d1f62-dd45-4b6c-a82a-81889da0b844",
+  "id": "94a046b3-cc35-4710-8fa6-8779e168edb7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "task": {
-      "name": "task",
+    "share_card_set": {
+      "name": "share_card_set",
       "columns": {
         "id": {
           "name": "id",
@@ -21,8 +21,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "cardSet": {
-          "name": "cardSet",
+        "card_set": {
+          "name": "card_set",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

@@ -35,7 +35,7 @@
 		if (!selectedSet) return;
 		saving = true;
 		try {
-			await fetch('/api/test-db', {
+			await fetch('/api/card-set', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ cardSet: selectedSet })
@@ -84,7 +84,7 @@
 					</ButtonGroup>
 				</ButtonGroup>
 			</div>
-			<div class="flex items-center gap-2">
+			<div class="flex gap-2 items-center">
 				<Button
 					variant="outline"
 					size="icon"
@@ -95,18 +95,10 @@
 					<UploadIcon />
 				</Button>
 				<ButtonGroup>
-					<Toggle
-						variant="outline"
-						pressed={!viewAll}
-						onPressedChange={() => (viewAll = false)}
-					>
+					<Toggle variant="outline" pressed={!viewAll} onPressedChange={() => (viewAll = false)}>
 						<GalleryHorizontalIcon />Study
 					</Toggle>
-					<Toggle
-						variant="outline"
-						pressed={viewAll}
-						onPressedChange={() => (viewAll = true)}
-					>
+					<Toggle variant="outline" pressed={viewAll} onPressedChange={() => (viewAll = true)}>
 						<LayoutListIcon />View All
 					</Toggle>
 				</ButtonGroup>

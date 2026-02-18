@@ -1,12 +1,12 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { nanoid } from "nanoid";
 
-export const task = sqliteTable("task", {
+export const shareCardSet = sqliteTable("share_card_set", {
 	id: text("id")
 		.primaryKey()
 		.$defaultFn(() => nanoid()),
-	timestamp: integer({ mode: "timestamp" })
+	timestamp: integer("timestamp", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),
-	cardSet: text({ mode: "json" }),
+	cardSet: text("card_set", { mode: "json" }),
 });

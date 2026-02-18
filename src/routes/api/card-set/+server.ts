@@ -1,6 +1,6 @@
 import { json } from "@sveltejs/kit";
 import { drizzle } from "drizzle-orm/d1";
-import { task } from "$lib/server/db/schema";
+import { shareCardSet } from "$lib/server/db/schema";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ platform }) => {
@@ -9,9 +9,9 @@ export const GET: RequestHandler = async ({ platform }) => {
 	}
 
 	const db = drizzle(platform.env.DB);
-	const tasks = await db.select().from(task);
+	const cardSets = await db.select().from(shareCardSet);
 
-	return json({ tasks });
+	return json({ cardSets });
 };
 
 export const POST: RequestHandler = async ({ request, platform }) => {
@@ -22,7 +22,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 	const body = await request.json();
 	const db = drizzle(platform.env.DB);
 	const inserted = await db
-		.insert(task)
+		.insert(shareCardSet)
 		.values({ cardSet: body?.cardSet ?? null })
 		.returning();
 
