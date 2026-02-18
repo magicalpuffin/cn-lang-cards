@@ -42,14 +42,7 @@
 	});
 
 	$effect(() => {
-		// after scrolling to card, reset card
-		if (currentIndex) {
-			showPinyin = false;
-			showEnglish = false;
-		}
-	});
-
-	$effect(() => {
+		// adding callbacks for carousel API
 		if (api) {
 			// initial canScroll state on reload
 			canScrollPrev = api!.canScrollPrev();
@@ -70,10 +63,11 @@
 			};
 
 			const onSelect = () => {
+				// update current index to scrolled to selection
 				currentIndex = api!.selectedScrollSnap();
 				showPinyin = false;
 				showEnglish = false;
-				updateScrollState();
+				// updateScrollState();
 			};
 
 			api.on('select', onSelect);
@@ -95,7 +89,7 @@
 	}
 
 	function handleCardCreate() {
-		pendingScrollTo = api!.scrollSnapList().length;
+		pendingScrollTo = api?.scrollSnapList().length ?? null;
 	}
 </script>
 
@@ -103,7 +97,7 @@
 	<div class="flex justify-between items-center">
 		<div class="flex items-center space-x-4">
 			{#if hasCards}
-				<span class="w-20 text-sm text-muted-foreground"
+				<span class="w-24 text-sm text-muted-foreground"
 					>Card {currentIndex + 1} of {studyCards.length}</span
 				>
 			{:else}

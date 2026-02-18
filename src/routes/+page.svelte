@@ -30,7 +30,7 @@
 	<div class="space-y-6">
 		<div class="flex flex-wrap justify-between items-center">
 			<div class="flex items-center space-x-4">
-				<span class="hidden w-20 text-sm md:inline text-muted-foreground">Card Set</span>
+				<span class="hidden w-24 text-sm md:inline text-muted-foreground">Card Set</span>
 				<ButtonGroup>
 					<ButtonGroup>
 						<SetSelectorCombobox bind:value={studySetId} />

@@ -35,15 +35,15 @@ function saveStorage(cards: FlashCard[], sets: CardSet[], selectedSetId?: string
 }
 
 class CardStore {
-	cards: FlashCard[];
-	cardSets: CardSet[];
-	selectedSetId: string;
+	cards = $state<FlashCard[]>([]);
+	cardSets = $state<CardSet[]>([]);
+	selectedSetId = $state<string>(DEFAULT_SET_ID);
 
 	constructor() {
 		const data = loadStorage();
-		this.cards = $state(data.cards);
-		this.cardSets = $state(ensureDefaultSet(data.sets));
-		this.selectedSetId = $state(data.selectedSetId ?? DEFAULT_SET_ID);
+		this.cards = data.cards;
+		this.cardSets = ensureDefaultSet(data.sets);
+		this.selectedSetId = data.selectedSetId ?? DEFAULT_SET_ID;
 	}
 
 	setSelectedSetId(id: string) {

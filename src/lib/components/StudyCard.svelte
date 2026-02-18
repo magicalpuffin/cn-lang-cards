@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { FlashCard } from '$lib/types';
 	import { Button } from '$lib/components/ui/button';
-	import { SquarePenIcon, Trash2Icon } from '@lucide/svelte';
+	import { ALargeSmallIcon, EyeIcon, EyeOffIcon, SquarePenIcon, Trash2Icon } from '@lucide/svelte';
 	import { ButtonGroup } from '$lib/components/ui/button-group';
 	import EditCardDialog from './EditCardDialog.svelte';
 	import DeleteCardDialog from './DeleteCardDialog.svelte';
+	import { ToggleGroup, ToggleGroupItem } from '$lib/components/ui/toggle-group';
+	import { Toggle } from '$lib/components/ui/toggle';
 
 	let {
 		card,
@@ -25,24 +27,28 @@
 
 	const hasEnglish = $derived((card.english?.trim().length ?? 0) > 0);
 
-	function togglePinyin() {
-		showPinyin = !showPinyin;
+	let toggleValue = $derived.by(() => {
+		const v: string[] = [];
+		if (showPinyin) v.push('pinyin');
+		if (showEnglish) v.push('english');
+		return v;
+	});
+
+	function onToggleChange(v: string[]) {
+		showPinyin = v.includes('pinyin');
+		showEnglish = v.includes('english');
 	}
 
-	function toggleEnglish() {
-		showEnglish = !showEnglish;
-	}
+	const allRevealed = $derived(showPinyin && (showEnglish || !hasEnglish));
 
-	function revealAll() {
-		showPinyin = true;
-		if (hasEnglish) {
-			showEnglish = true;
+	function onToggleAllChange(pressed: boolean) {
+		if (pressed) {
+			showPinyin = true;
+			if (hasEnglish) showEnglish = true;
+		} else {
+			showPinyin = false;
+			showEnglish = false;
 		}
-	}
-
-	function hideAll() {
-		showPinyin = false;
-		showEnglish = false;
 	}
 </script>
 
@@ -83,26 +89,30 @@
 	</div>
 	<div class="flex flex-col gap-2 md:grid md:grid-cols-2 md:gap-4">
 		<div class="flex justify-center md:justify-end">
-			<ButtonGroup>
-				<Button onclick={togglePinyin} variant={showPinyin ? 'default' : 'outline'} class="w-32">
-					{showPinyin ? 'Hide' : 'Show'} Pinyin
-				</Button>
-				<Button
-					onclick={toggleEnglish}
-					variant={showEnglish ? 'default' : 'outline'}
-					class="w-32"
-					disabled={!hasEnglish}
-				>
-					{showEnglish ? 'Hide' : 'Show'} English
-				</Button>
-			</ButtonGroup>
+			<ToggleGroup
+				type="multiple"
+				variant="outline"
+				size="default"
+				value={toggleValue}
+				onValueChange={onToggleChange}
+			>
+				<ToggleGroupItem value="pinyin"><span class="text-xs">拼</span>Pinyin</ToggleGroupItem>
+				<ToggleGroupItem value="english"><ALargeSmallIcon /> English</ToggleGroupItem>
+			</ToggleGroup>
 		</div>
 
 		<div class="flex justify-center md:justify-start">
-			<ButtonGroup>
-				<Button onclick={revealAll} variant="secondary" class="w-32">Reveal All</Button>
-				<Button onclick={hideAll} variant="secondary" class="w-32">Hide All</Button>
-			</ButtonGroup>
+			<Toggle
+				variant="outline"
+				pressed={allRevealed}
+				onPressedChange={onToggleAllChange}
+			>
+				{#if allRevealed}
+					<EyeIcon /> Hide All
+				{:else}
+					<EyeOffIcon /> Show All
+				{/if}
+			</Toggle>
 		</div>
 	</div>
 </div>
