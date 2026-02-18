@@ -10,6 +10,7 @@
 	import StudyCard from './StudyCard.svelte';
 	import CreateCardDialog from './CreateCardDialog.svelte';
 	import CardManager from './CardManager.svelte';
+	import CardSelectorCombobox from './CardSelectorCombobox.svelte';
 	import { PlusIcon, ShuffleIcon, SquarePenIcon } from '@lucide/svelte';
 	import { Toggle } from '$lib/components/ui/toggle';
 
@@ -67,7 +68,7 @@
 				currentIndex = api!.selectedScrollSnap();
 				showPinyin = false;
 				showEnglish = false;
-				// updateScrollState();
+				updateScrollState();
 			};
 
 			api.on('select', onSelect);
@@ -80,6 +81,7 @@
 	});
 
 	const currentCard = $derived(studyCards[currentIndex]);
+	const selectedCardId = $derived(currentCard?.id ?? null);
 	const hasCards = $derived(studyCards.length > 0);
 	let canScrollPrev = $state(false);
 	let canScrollNext = $state(false);
@@ -90,6 +92,10 @@
 
 	function handleCardCreate() {
 		pendingScrollTo = api?.scrollSnapList().length ?? null;
+	}
+
+	function handleCardSelect(index: number) {
+		api?.scrollTo(index);
 	}
 </script>
 
@@ -103,6 +109,7 @@
 			{:else}
 				<span class="w-20 text-sm text-muted-foreground">No Cards</span>
 			{/if}
+			<CardSelectorCombobox value={selectedCardId} cards={studyCards} onselect={handleCardSelect} />
 			<ButtonGroup>
 				<Button variant="outline" size="icon" onclick={() => (createCardOpen = true)}
 					><PlusIcon /></Button
