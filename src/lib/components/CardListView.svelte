@@ -8,7 +8,7 @@
 	import EditCardDialog from './EditCardDialog.svelte';
 	import DeleteCardDialog from './DeleteCardDialog.svelte';
 
-	let { setId }: { setId: string } = $props();
+	let { setId, onviewcard }: { setId: string; onviewcard?: (index: number) => void } = $props();
 
 	let editDialogOpen = $state(false);
 	let deleteDialogOpen = $state(false);
@@ -28,10 +28,14 @@
 </script>
 
 <div class="space-y-2">
-	{#each cards as card (card.id)}
+	{#each cards as card, i (card.id)}
 		<div class="p-4 rounded-xl border hover:bg-muted/50">
-			<div class="flex justify-between">
-				<div class="text-2xl font-medium">{card.chinese}</div>
+			<div class="flex justify-between items-center mb-2">
+				<div>
+					<span class="text-sm text-muted-foreground">{i + 1}.</span>
+
+					<Button variant="link" size="default" onclick={() => onviewcard?.(i)}>View Card</Button>
+				</div>
 				<ButtonGroup>
 					<Button
 						aria-label="Edit card"
@@ -53,6 +57,7 @@
 				</ButtonGroup>
 			</div>
 			<div class="flex flex-col space-y-2">
+				<div class="text-2xl font-medium">{card.chinese}</div>
 				<div class="text-sm text-muted-foreground">{card.pinyin}</div>
 				{#if card.english}
 					<div class="text-sm">{card.english}</div>

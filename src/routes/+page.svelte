@@ -21,6 +21,7 @@
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
 
 	let viewAll = $state(false);
+	let initialCardIndex = $state(0);
 	let createSetOpen = $state(false);
 	let editSetOpen = $state(false);
 	let deleteSetOpen = $state(false);
@@ -86,9 +87,15 @@
 
 		{#if studySetId}
 			{#if viewAll}
-				<CardListView setId={studySetId} />
+				<CardListView
+					setId={studySetId}
+					onviewcard={(index) => {
+						initialCardIndex = index;
+						viewAll = false;
+					}}
+				/>
 			{:else}
-				<StudyMode setId={studySetId} />
+				<StudyMode setId={studySetId} {initialCardIndex} />
 			{/if}
 		{:else}
 			<p class="py-8 text-center text-muted-foreground">Select a set to start studying.</p>

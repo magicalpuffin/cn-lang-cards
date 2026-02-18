@@ -14,17 +14,17 @@
 	import { PlusIcon, ShuffleIcon, SquarePenIcon } from '@lucide/svelte';
 	import { Toggle } from '$lib/components/ui/toggle';
 
-	let { setId }: { setId: string } = $props();
+	let { setId, initialCardIndex = 0 }: { setId: string; initialCardIndex?: number } = $props();
 
 	let createCardOpen = $state(false);
 	let manageCardsOpen = $state(false);
 
 	let api = $state<CarouselAPI>();
-	let currentIndex = $state(0);
+	let currentIndex = $state(initialCardIndex);
 	let showPinyin = $state(false);
 	let showEnglish = $state(false);
 	let mode = $state<StudyMode>('sequential');
-	let pendingScrollTo = $state<number | null>(null);
+	let pendingScrollTo = $state<number | null>(initialCardIndex > 0 ? initialCardIndex : null);
 	let studyCards = $derived<FlashCard[]>(
 		mode === 'random' ? cardStore.getRandomOrder(setId) : cardStore.getCardsBySet(setId)
 	);
@@ -45,6 +45,14 @@
 	$effect(() => {
 		// adding callbacks for carousel API
 		if (api) {
+			// scroll to initial position if needed
+			if (pendingScrollTo !== null) {
+				const target = pendingScrollTo;
+				pendingScrollTo = null;
+				api.scrollTo(target, true);
+				currentIndex = target;
+			}
+
 			// initial canScroll state on reload
 			canScrollPrev = api!.canScrollPrev();
 			canScrollNext = api!.canScrollNext();
