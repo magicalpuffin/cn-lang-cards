@@ -10,3 +10,13 @@ export const shareCardSet = sqliteTable("share_card_set", {
 		.$defaultFn(() => new Date()),
 	cardSet: text("card_set", { mode: "json" }),
 });
+
+export const sessions = sqliteTable("sessions", {
+	id: text("id")
+		.primaryKey()
+		.$defaultFn(() => nanoid()),
+	tokenHash: text("secretHash").notNull(),
+	expiresAt: integer("createAt", { mode: "timestamp" })
+		.notNull()
+		.$defaultFn(() => new Date()),
+});
