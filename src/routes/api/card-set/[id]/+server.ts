@@ -1,7 +1,7 @@
 import { json } from "@sveltejs/kit";
-import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
-import { shareCardSet } from "$lib/server/db/schema";
+import { drizzle } from "drizzle-orm/d1";
+import { cardSets } from "$lib/server/db/schema";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ params, platform }) => {
@@ -12,8 +12,8 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 	const db = drizzle(platform.env.DB);
 	const rows = await db
 		.select()
-		.from(shareCardSet)
-		.where(eq(shareCardSet.id, params.id));
+		.from(cardSets)
+		.where(eq(cardSets.id, params.id));
 
 	if (rows.length === 0) {
 		return json({ error: "Not found" }, { status: 404 });

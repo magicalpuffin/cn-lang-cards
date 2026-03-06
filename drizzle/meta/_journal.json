@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1771399870203,
-      "tag": "0000_brave_umar",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1772690768320,
-      "tag": "0001_youthful_ricochet",
+      "when": 1772822340764,
+      "tag": "0000_clumsy_wolf_cub",
       "breakpoints": true
     }
   ]

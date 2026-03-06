@@ -11,7 +11,7 @@ import {
 import { generateToken, hashToken } from "./token";
 
 export const sessionCookieName = "cn-lang-card-session";
-export const sessionExpiresIn = new TimeSpan(30, "d");
+export const sessionExpiresIn = new TimeSpan(90, "d");
 export const sessionCookieController = new CookieController(
 	sessionCookieName,
 	{
@@ -57,6 +57,7 @@ export async function validateSession(db: Database, token: string) {
 		return { session: null, sessionCookie };
 	}
 
+	// if session is expired
 	if (!isBeforeExpirationDate(activeSession.expiresAt)) {
 		await invalidateSession(db, tokenHash);
 		const sessionCookie = createBlankSessionCookie();
@@ -72,6 +73,8 @@ export async function validateSession(db: Database, token: string) {
 	const activePeriodExpirationDate = new Date(
 		activeSession.expiresAt.getTime() - sessionExpiresIn.milliseconds() / 2,
 	);
+
+	// if session is no longer active, renew session
 	if (!isBeforeExpirationDate(activePeriodExpirationDate)) {
 		session.fresh = true;
 		session.expiresAt = createExpirationDate(sessionExpiresIn);
@@ -81,6 +84,7 @@ export async function validateSession(db: Database, token: string) {
 			.where(eq(sessions.tokenHash, tokenHash));
 	}
 	const sessionCookie = createSessionCookie(token);
+	console.log(session.id);
 	return { session, sessionCookie };
 }
 
