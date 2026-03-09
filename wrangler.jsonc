@@ -12,6 +12,14 @@
 	"preview_urls": true,
 	"observability": {
 		"enabled": true
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "cn-lang-cards-db",
+			"database_id": "79840daf-7963-429b-99aa-80678b41cdc3",
+			"migrations_dir": "./drizzle"
+		}
+	]
 }
 

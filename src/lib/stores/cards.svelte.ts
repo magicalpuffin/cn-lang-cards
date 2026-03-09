@@ -1,3 +1,5 @@
+import { nanoid } from "nanoid";
+import { toast } from "svelte-sonner";
 import { browser } from "$app/environment";
 import type { CardSet, FlashCard } from "$lib/types";
 
@@ -54,13 +56,14 @@ class CardStore {
 	// Set methods
 	addSet(name: string): string {
 		const newSet: CardSet = {
-			id: crypto.randomUUID(),
+			id: nanoid(),
 			name,
 			cards: [],
 			createdAt: Date.now(),
 		};
 		this.cardSets = [...this.cardSets, newSet];
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card set created", { description: name });
 		return newSet.id;
 	}
 
@@ -69,15 +72,31 @@ class CardStore {
 			s.id === id ? { ...s, name } : s,
 		);
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card set updated", { description: name });
 	}
 
 	deleteSet(id: string) {
 		if (id === DEFAULT_SET_ID) return;
+		const setName = this.cardSets.find((s) => s.id === id)?.name;
 		this.cardSets = this.cardSets.filter((s) => s.id !== id);
 		if (this.selectedSetId === id) {
 			this.selectedSetId = DEFAULT_SET_ID;
 		}
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card set deleted", { description: setName });
+	}
+
+	importSet(cardSet: CardSet) {
+		const existingIndex = this.cardSets.findIndex((s) => s.id === cardSet.id);
+		if (existingIndex !== -1) {
+			this.cardSets = this.cardSets.map((s) =>
+				s.id === cardSet.id ? cardSet : s,
+			);
+		} else {
+			this.cardSets = [...this.cardSets, cardSet];
+		}
+		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card set imported", { description: cardSet.name });
 	}
 
 	getCardsBySet(setId: string): FlashCard[] {
@@ -88,20 +107,25 @@ class CardStore {
 	addCard(setId: string, card: Omit<FlashCard, "id" | "createdAt">) {
 		const newCard: FlashCard = {
 			...card,
-			id: crypto.randomUUID(),
+			id: nanoid(),
 			createdAt: Date.now(),
 		};
 		this.cardSets = this.cardSets.map((s) =>
 			s.id === setId ? { ...s, cards: [...s.cards, newCard] } : s,
 		);
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("New card created", { description: newCard.chinese });
 	}
 
 	deleteCard(setId: string, id: string) {
+		const card = this.cardSets
+			.find((s) => s.id === setId)
+			?.cards.find((c) => c.id === id);
 		this.cardSets = this.cardSets.map((s) =>
 			s.id === setId ? { ...s, cards: s.cards.filter((c) => c.id !== id) } : s,
 		);
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card deleted", { description: card?.chinese });
 	}
 
 	updateCard(
@@ -118,6 +142,7 @@ class CardStore {
 				: s,
 		);
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Card updated", { description: updates.chinese });
 	}
 
 	reorderCards(setId: string, orderedIds: string[]) {
@@ -130,6 +155,7 @@ class CardStore {
 			return { ...s, cards: reordered };
 		});
 		saveStorage(this.cardSets, this.selectedSetId);
+		toast("Cards reordered");
 	}
 
 	getRandomOrder(setId: string): FlashCard[] {

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cardStore } from '$lib/stores/cards.svelte';
+	import { untrack } from 'svelte';
 	import type { FlashCard, StudyMode } from '$lib/types';
 	import type { CarouselAPI } from '$lib/components/ui/carousel/context';
 	import { Button } from '$lib/components/ui/button';
@@ -30,41 +31,38 @@
 	);
 
 	$effect(() => {
-		// when selecting different card set
+		// when selecting different card set — only re-runs when setId changes
 		if (setId) {
 			currentIndex = 0;
 			showPinyin = false;
 			showEnglish = false;
-			// Reset carousel to first slide when mode/set changes
-			if (api) {
-				api.scrollTo(0, true);
+			const currentApi = untrack(() => api);
+			if (currentApi) {
+				currentApi.scrollTo(0, true);
 			}
 		}
 	});
 
 	$effect(() => {
-		// adding callbacks for carousel API
+		// adding callbacks for carousel API — only re-runs when api changes
 		if (api) {
-			// scroll to initial position if needed
-			if (pendingScrollTo !== null) {
-				const target = pendingScrollTo;
+			// handle initial scroll (carousel is fully rendered at this point)
+			const pending = untrack(() => pendingScrollTo);
+			if (pending !== null) {
 				pendingScrollTo = null;
-				api.scrollTo(target, true);
-				currentIndex = target;
+				api.scrollTo(pending, true);
+				currentIndex = pending;
 			}
 
-			// initial canScroll state on reload
-			canScrollPrev = api!.canScrollPrev();
-			canScrollNext = api!.canScrollNext();
+			canScrollPrev = api.canScrollPrev();
+			canScrollNext = api.canScrollNext();
 
-			// update canScroll reInit when cards change
 			const updateScrollState = () => {
+				// handle pending scroll on reInit (e.g. after card create/delete)
 				if (pendingScrollTo !== null) {
 					const target = pendingScrollTo;
 					pendingScrollTo = null;
 					api!.scrollTo(target);
-					// Update currentIndex directly in case scrollTo is a no-op
-					// (e.g. already at the target position after deleting the last card)
 					currentIndex = api!.selectedScrollSnap();
 				}
 				canScrollPrev = api!.canScrollPrev();
@@ -72,7 +70,6 @@
 			};
 
 			const onSelect = () => {
-				// update current index to scrolled to selection
 				currentIndex = api!.selectedScrollSnap();
 				showPinyin = false;
 				showEnglish = false;
@@ -115,7 +112,7 @@
 					>Card {currentIndex + 1} of {studyCards.length}</span
 				>
 			{:else}
-				<span class="w-20 text-sm text-muted-foreground">No Cards</span>
+				<span class="hidden w-20 text-sm md:inline text-muted-foreground">No Cards</span>
 			{/if}
 			<ButtonGroup>
 				<ButtonGroup>

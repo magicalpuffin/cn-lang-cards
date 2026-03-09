@@ -1,0 +1,1 @@
+ALTER TABLE `card_sets` ADD `card_set_id` text NOT NULL;

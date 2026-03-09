@@ -1,3 +1,5 @@
+import type { Session } from "$lib/server/authn/interface";
+
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 declare global {
@@ -6,18 +8,18 @@ declare global {
 			env: {
 				AZ_TRANSLATOR_API_KEY: string;
 				AZ_REGION: string;
+				DB: D1Database;
 			};
 			ctx: ExecutionContext;
 			caches: CacheStorage;
 			cf?: IncomingRequestCfProperties;
 		}
-
+		interface Locals {
+			session: Session | null;
+		}
 		// interface Error {}
-		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}
 	}
 }
-
-export {};
