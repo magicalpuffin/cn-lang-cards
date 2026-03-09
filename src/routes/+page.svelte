@@ -98,7 +98,7 @@
 	<Separator class="my-2 md:my-4" />
 
 	<div class="space-y-6">
-		<div class="flex flex-wrap justify-between items-center">
+		<div class="flex flex-col flex-wrap gap-2 md:flex-row md:justify-between">
 			<div class="flex items-center space-x-4">
 				<span class="hidden w-24 text-sm md:inline text-muted-foreground">Card Set</span>
 				<ButtonGroup>
@@ -136,10 +136,20 @@
 			</div>
 			<div class="flex gap-2 items-center">
 				<ButtonGroup>
-					<Toggle variant="outline" pressed={!viewAll} onPressedChange={() => (viewAll = false)}>
+					<Toggle
+						class="w-24"
+						variant="outline"
+						pressed={!viewAll}
+						onPressedChange={() => (viewAll = false)}
+					>
 						<GalleryHorizontalIcon />Study
 					</Toggle>
-					<Toggle variant="outline" pressed={viewAll} onPressedChange={() => (viewAll = true)}>
+					<Toggle
+						class="w-24"
+						variant="outline"
+						pressed={viewAll}
+						onPressedChange={() => (viewAll = true)}
+					>
 						<LayoutListIcon />View All
 					</Toggle>
 				</ButtonGroup>
