@@ -84,7 +84,6 @@ export async function validateSession(db: Database, token: string) {
 			.where(eq(sessions.tokenHash, tokenHash));
 	}
 	const sessionCookie = createSessionCookie(token);
-	console.log(session.id);
 	return { session, sessionCookie };
 }
 

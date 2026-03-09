@@ -8,13 +8,14 @@
 	import SetSelectorCombobox from '$lib/components/SetSelectorCombobox.svelte';
 	import CreateSetDialog from '$lib/components/CreateSetDialog.svelte';
 	import EditSetDialog from '$lib/components/EditSetDialog.svelte';
+	import ShareSetDialog from '$lib/components/ShareSetDialog.svelte';
 	import {
 		GalleryHorizontalIcon,
 		LayoutListIcon,
+		LinkIcon,
 		PlusIcon,
 		SquarePenIcon,
-		Trash2Icon,
-		UploadIcon
+		Trash2Icon
 	} from '@lucide/svelte';
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
@@ -53,25 +54,10 @@
 	let initialCardIndex = $state(0);
 	let createSetOpen = $state(false);
 	let editSetOpen = $state(false);
+	let shareSetOpen = $state(false);
 	let deleteSetOpen = $state(false);
 
 	const selectedSet = $derived(cardStore.cardSets.find((s) => s.id === studySetId) ?? null);
-
-	let saving = $state(false);
-
-	async function saveToDb() {
-		if (!selectedSet) return;
-		saving = true;
-		try {
-			await fetch('/api/card-set', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ cardSet: selectedSet })
-			});
-		} finally {
-			saving = false;
-		}
-	}
 
 	$effect(() => {
 		cardStore.setSelectedSetId(studySetId ?? DEFAULT_SET_ID);
@@ -97,6 +83,13 @@
 							disabled={!studySetId || studySetId === DEFAULT_SET_ID}><SquarePenIcon /></Button
 						>
 						<Button
+							aria-label="Share card set"
+							variant="outline"
+							size="icon"
+							disabled={!selectedSet || studySetId === DEFAULT_SET_ID}
+							onclick={() => (shareSetOpen = true)}><LinkIcon /></Button
+						>
+						<Button
 							aria-label="Delete card set"
 							variant="outline"
 							size="icon"
@@ -113,15 +106,6 @@
 				</ButtonGroup>
 			</div>
 			<div class="flex gap-2 items-center">
-				<Button
-					variant="outline"
-					size="icon"
-					aria-label="Save card set to database"
-					disabled={!selectedSet || saving}
-					onclick={saveToDb}
-				>
-					<UploadIcon />
-				</Button>
 				<ButtonGroup>
 					<Toggle variant="outline" pressed={!viewAll} onPressedChange={() => (viewAll = false)}>
 						<GalleryHorizontalIcon />Study
@@ -153,6 +137,7 @@
 
 <CreateSetDialog bind:open={createSetOpen} oncreate={(id) => (studySetId = id)} />
 <EditSetDialog bind:open={editSetOpen} cardSet={selectedSet} />
+<ShareSetDialog bind:open={shareSetOpen} cardSet={selectedSet} />
 <DeleteSetDialog
 	bind:open={deleteSetOpen}
 	cardSet={selectedSet}
