@@ -1,6 +1,7 @@
 import { error, type Handle } from "@sveltejs/kit";
 import * as authn from "$lib/server/authn";
 import { initializeDrizzle } from "$lib/server/db";
+import { cleanupExpiredSessions } from "$lib/server/db/cleanup";
 
 export const handle: Handle = async ({ event, resolve }) => {
 	if (!event.platform?.env?.DB) {
@@ -49,6 +50,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	event.locals.session = session;
+
+	// Cleanup expired sessions and their card sets in the background
+	const cleanup = cleanupExpiredSessions(db).catch(() => {});
+	if (event.platform?.ctx?.waitUntil) {
+		event.platform.ctx.waitUntil(cleanup);
+	}
 
 	return resolve(event);
 };
