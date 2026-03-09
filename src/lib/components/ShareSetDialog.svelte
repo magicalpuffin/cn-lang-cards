@@ -11,6 +11,7 @@
 		DialogTitle
 	} from '$lib/components/ui/dialog';
 	import { CheckIcon, CopyIcon, LoaderCircleIcon } from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 
 	let { open = $bindable(false), cardSet }: { open: boolean; cardSet: CardSet | null } = $props();
 
@@ -43,17 +44,23 @@
 			});
 			if (!res.ok) {
 				error = 'Failed to share card set';
+				toast.error('Failed to share card set');
 				return;
 			}
 			const data = await res.json();
 			const id = data.task?.id;
 			if (!id) {
 				error = 'No share ID returned';
+				toast.error('Failed to share card set');
 				return;
 			}
 			shareLink = `${window.location.origin}/?share=${id}`;
+			if (res.status === 201) {
+				toast.success('Share link created', { description: cardSet.name });
+			}
 		} catch {
 			error = 'Failed to share card set';
+			toast.error('Failed to share card set');
 		} finally {
 			saving = false;
 		}

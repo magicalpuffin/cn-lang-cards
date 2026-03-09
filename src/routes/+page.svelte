@@ -30,6 +30,7 @@
 		AlertDialogHeader,
 		AlertDialogTitle
 	} from '$lib/components/ui/alert-dialog';
+	import { toast } from 'svelte-sonner';
 	import type { CardSet } from '$lib/types';
 
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
@@ -48,20 +49,20 @@
 		try {
 			const res = await fetch(`/api/card-set/${shareId}`);
 			if (!res.ok) {
-				console.error('Failed to fetch shared card set:', res.status);
+				toast.error('Failed to load shared card set');
 				return;
 			}
 			const data = await res.json();
 			const importedSet = data.shareCardSet?.cardSet as CardSet | undefined;
 			if (!importedSet) {
-				console.error('No card set found in response');
+				toast.error('Shared card set not found');
 				return;
 			}
 			willOverwrite = cardStore.cardSets.some((s) => s.id === importedSet.id);
 			pendingImport = importedSet;
 			importDialogOpen = true;
-		} catch (err) {
-			console.error('Error importing shared card set:', err);
+		} catch {
+			toast.error('Failed to load shared card set');
 		}
 	});
 
