@@ -9,6 +9,7 @@ export const cardSets = sqliteTable("card_sets", {
 	sessionId: text("session_id")
 		.notNull()
 		.references(() => sessions.id),
+	cardSetId: text("card_set_id").notNull(),
 	timestamp: integer("timestamp", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),

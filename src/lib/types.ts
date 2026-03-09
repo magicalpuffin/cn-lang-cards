@@ -1,16 +1,20 @@
-export interface FlashCard {
-	id: string;
-	chinese: string;
-	pinyin: string;
-	english: string;
-	createdAt: number;
-}
+import Type from "typebox";
 
-export interface CardSet {
-	id: string;
-	name: string;
-	cards: FlashCard[];
-	createdAt: number;
-}
+export const FlashCard = Type.Object({
+	id: Type.String(),
+	chinese: Type.String(),
+	pinyin: Type.String(),
+	english: Type.String(),
+	createdAt: Type.Number(),
+});
+export type FlashCard = Type.Static<typeof FlashCard>;
 
-export type StudyMode = 'random' | 'sequential';
+export const CardSet = Type.Object({
+	id: Type.String(),
+	name: Type.String(),
+	createdAt: Type.Number(),
+	cards: Type.Array(FlashCard),
+});
+export type CardSet = Type.Static<typeof CardSet>;
+
+export type StudyMode = "random" | "sequential";
