@@ -20,9 +20,23 @@
 	import DeleteSetDialog from '$lib/components/DeleteSetDialog.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Toggle } from '$lib/components/ui/toggle';
+	import {
+		AlertDialog,
+		AlertDialogAction,
+		AlertDialogCancel,
+		AlertDialogContent,
+		AlertDialogDescription,
+		AlertDialogFooter,
+		AlertDialogHeader,
+		AlertDialogTitle
+	} from '$lib/components/ui/alert-dialog';
 	import type { CardSet } from '$lib/types';
 
 	let studySetId = $state<string | null>(cardStore.selectedSetId || null);
+
+	let importDialogOpen = $state(false);
+	let pendingImport = $state<CardSet | null>(null);
+	let willOverwrite = $state(false);
 
 	onMount(async () => {
 		const params = new URLSearchParams(window.location.search);
@@ -43,12 +57,26 @@
 				console.error('No card set found in response');
 				return;
 			}
-			cardStore.importSet(importedSet);
-			studySetId = importedSet.id;
+			willOverwrite = cardStore.cardSets.some((s) => s.id === importedSet.id);
+			pendingImport = importedSet;
+			importDialogOpen = true;
 		} catch (err) {
 			console.error('Error importing shared card set:', err);
 		}
 	});
+
+	function confirmImport() {
+		if (!pendingImport) return;
+		cardStore.importSet(pendingImport);
+		studySetId = pendingImport.id;
+		pendingImport = null;
+		importDialogOpen = false;
+	}
+
+	function cancelImport() {
+		pendingImport = null;
+		importDialogOpen = false;
+	}
 
 	let viewAll = $state(false);
 	let initialCardIndex = $state(0);
@@ -143,3 +171,25 @@
 	cardSet={selectedSet}
 	ondelete={() => (studySetId = DEFAULT_SET_ID)}
 />
+
+<AlertDialog bind:open={importDialogOpen}>
+	<AlertDialogContent>
+		<AlertDialogHeader>
+			<AlertDialogTitle>Import Shared Card Set</AlertDialogTitle>
+			<AlertDialogDescription>
+				{#if willOverwrite}
+					A card set named "{pendingImport?.name}" already exists. Importing will overwrite your
+					existing set and its cards.
+				{:else}
+					Import "{pendingImport?.name}" with {pendingImport?.cards.length === 1
+						? '1 card'
+						: `${pendingImport?.cards.length} cards`}?
+				{/if}
+			</AlertDialogDescription>
+		</AlertDialogHeader>
+		<AlertDialogFooter>
+			<AlertDialogCancel onclick={cancelImport}>Cancel</AlertDialogCancel>
+			<AlertDialogAction onclick={confirmImport}>Import</AlertDialogAction>
+		</AlertDialogFooter>
+	</AlertDialogContent>
+</AlertDialog>
