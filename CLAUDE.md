@@ -37,9 +37,16 @@ src/
 │   ├── assets/
 │   │   └── favicon.svg
 │   ├── server/
+│   │   ├── authn/
+│   │   │   ├── index.ts             # Session creation/validation (createSession, validateSession)
+│   │   │   ├── interface.ts         # Session/SessionCookie types
+│   │   │   ├── cookie.ts            # Cookie attribute helpers
+│   │   │   ├── token.ts             # Token hashing (SHA-256)
+│   │   │   └── timespan.ts          # Expiry/freshness duration helpers
 │   │   └── db/
-│   │       ├── index.ts              # Drizzle D1 initialization helper
-│   │       └── schema.ts            # share_card_set table schema (Drizzle)
+│   │       ├── index.ts              # Drizzle D1 initialization helper + Database type
+│   │       ├── schema.ts            # sessions + card_sets table schema (Drizzle)
+│   │       └── cleanup.ts           # Expired session + orphaned card_set cleanup
 │   ├── stores/
 │   │   └── cards.svelte.ts           # Card/set store with localStorage sync
 │   └── components/
@@ -58,6 +65,7 @@ src/
 │       ├── StudyCard.svelte           # Individual flashcard with reveal controls (ToggleGroup)
 │       ├── StudyMode.svelte           # Carousel study interface with navigation + card selector
 │       └── ui/                        # shadcn-svelte components
+├── hooks.server.ts                    # Server hook: session handling + expired session cleanup
 └── routes/
     ├── layout.css                     # Global styles
     ├── +layout.svelte                 # Root layout
@@ -96,18 +104,36 @@ type StudyMode = 'random' | 'sequential';
 
 ### Database Schema (D1 / Drizzle)
 
-The `share_card_set` table stores shared card sets as JSON blobs:
+Two tables: `sessions` for anonymous session tracking, and `card_sets` for shared card sets scoped to a session:
 
 ```typescript
 // src/lib/server/db/schema.ts
-export const shareCardSet = sqliteTable("share_card_set", {
+export const sessions = sqliteTable("sessions", {
   id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+});
+
+export const cardSets = sqliteTable("card_sets", {
+  id: text("id").primaryKey().$defaultFn(() => nanoid()),
+  sessionId: text("session_id").notNull().references(() => sessions.id),
+  cardSetId: text("card_set_id").notNull(),
   timestamp: integer("timestamp", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
-  cardSet: text("card_set", { mode: "json" }),
+  cardSet: text("card_set", { mode: "json" }).notNull(),
 });
 ```
 
 Migrations live in `./drizzle/` and are applied via `wrangler d1 migrations apply`.
+
+### Session Management
+
+Anonymous sessions are managed in `hooks.server.ts` using cookie-based tokens:
+
+- **Session creation**: On first visit (no cookie), a new session is created with a 90-day expiry
+- **Session validation**: On subsequent visits, the token is hashed (SHA-256) and matched against `sessions.token_hash`
+- **Session refresh**: Sessions within the refresh window get their expiry extended
+- **Expired session cleanup**: After session handling, `cleanupExpiredSessions()` runs via `waitUntil()` to delete expired sessions and their associated `card_sets` rows without blocking the response
+- **Card set scoping**: Shared card sets in D1 are tied to the user's session via `card_sets.session_id`
 
 ### Key Features
 
@@ -145,10 +171,12 @@ Migrations live in `./drizzle/` and are applied via `wrangler d1 migrations appl
 
 6. **Share Card Sets** (`+page.svelte`, `/api/card-set/`)
    - Upload button saves the current set to D1 database via `POST /api/card-set`
+   - Shared sets are scoped to the user's anonymous session (`card_sets.session_id`)
    - Shared sets are retrieved via `GET /api/card-set/[id]`
    - Visiting `/?share=<nanoid>` imports the shared set into localStorage on page load
    - Import handled in `onMount` as a one-shot side effect
    - URL query string is cleaned up with `history.replaceState` after import
+   - Expired sessions and their card sets are automatically cleaned up on every request (non-blocking via `waitUntil`)
 
 7. **Data Persistence**
    - All cards and sets saved to localStorage (`cn-lang-cards` key)
@@ -168,16 +196,16 @@ Server-side endpoint that translates Chinese (Simplified) to English using Azure
 
 ### Share Card Set (`/api/card-set`)
 
-**`POST /api/card-set`** - Save a card set to D1:
+**`POST /api/card-set`** - Save a card set to D1 (scoped to the user's session):
 - **Request body**: `{ "cardSet": CardSet }`
 - **Response**: `{ "task": { id, timestamp, cardSet } }` with status 201
 
-**`GET /api/card-set`** - List all shared card sets (admin/debug)
+**`GET /api/card-set`** - List the current session's shared card sets
 
 **`GET /api/card-set/[id]`** - Retrieve a shared card set by nanoid:
 - **Response**: `{ "shareCardSet": { id, timestamp, cardSet } }` or 404
 
-All endpoints guard on `platform.env.DB` availability and return 500 if the D1 binding is missing.
+All endpoints guard on `platform.env.DB` availability and return 500 if the D1 binding is missing. Card set endpoints use `event.locals.session` for session scoping.
 
 ## Environment Variables
 
